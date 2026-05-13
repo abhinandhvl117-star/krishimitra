@@ -1,0 +1,292 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Admin — KrishiMitra AI{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<style>
+/* ── Top nav ── */
+.admin-topnav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--gray-900);
+  height: 56px; padding: 0 1.5rem;
+  display: flex; align-items: center; gap: 0;
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+}
+
+/* Logo */
+.topnav-logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; margin-right: 2rem; flex-shrink: 0;
+}
+.topnav-logo .logo-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--green-400), var(--green-600));
+  border-radius: 7px; display: flex; align-items: center; justify-content: center;
+}
+.topnav-logo .logo-icon svg { fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; width: 15px; height: 15px; }
+.topnav-logo .logo-text { font-family: "DM Serif Display", serif; font-size: 1rem; color: white; }
+.topnav-logo .logo-text span { color: var(--green-400); }
+.topnav-logo .admin-badge {
+  font-size: 0.56rem; font-family: "DM Sans", sans-serif;
+  background: rgba(186,117,23,0.2); color: var(--amber-100);
+  border: 0.5px solid rgba(186,117,23,0.3);
+  padding: 2px 7px; border-radius: 20px; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase; margin-left: 2px;
+}
+
+/* Nav links */
+.topnav-links {
+  display: flex; align-items: center; gap: 2px; flex: 1;
+}
+.topnav-link {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 12px; border-radius: var(--radius-sm);
+  font-size: 0.8rem; color: var(--gray-400);
+  text-decoration: none; transition: all 0.15s; white-space: nowrap;
+}
+.topnav-link svg { width: 14px; height: 14px; opacity: 0.7; flex-shrink: 0; }
+.topnav-link:hover { background: rgba(255,255,255,0.06); color: white; }
+.topnav-link:hover svg { opacity: 1; }
+.topnav-link.active { background: rgba(99,153,34,0.15); color: var(--green-400); }
+.topnav-link.active svg { opacity: 1; }
+
+.topnav-sep {
+  width: 0.5px; height: 20px; background: rgba(255,255,255,0.1);
+  margin: 0 8px; flex-shrink: 0;
+}
+
+/* Right section */
+.topnav-right {
+  display: flex; align-items: center; gap: 10px; margin-left: auto;
+}
+.topnav-user {
+  display: flex; align-items: center; gap: 8px;
+}
+.topnav-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-400), var(--green-600));
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(99,153,34,0.25);
+}
+.topnav-username { font-size: 0.78rem; color: var(--gray-400); }
+.topnav-logout {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  background: rgba(216,90,48,0.08); border: 0.5px solid rgba(216,90,48,0.2);
+  color: rgba(240,153,123,0.9); font-size: 0.775rem; font-weight: 500;
+  text-decoration: none; transition: all 0.15s;
+}
+.topnav-logout:hover { background: rgba(216,90,48,0.18); color: var(--coral-200); border-color: rgba(216,90,48,0.4); }
+.topnav-logout svg { width: 13px; height: 13px; }
+
+/* ── Page layout ── */
+.admin-content { padding: 2rem; max-width: 1300px; margin: 0 auto; }
+
+/* ── Messages ── */
+.admin-messages { padding: 0.75rem 2rem 0; max-width: 1300px; margin: 0 auto; }
+.admin-messages .alert { margin-bottom: 6px; }
+
+/* ── Scrollable card ── */
+.scroll-card {
+  background: var(--bg-card); border: 0.5px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.scroll-card-header {
+  padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 0.5rem;
+}
+.scroll-card-title { font-size: 0.875rem; font-weight: 500; }
+.scroll-card-count {
+  font-size: 0.72rem; background: var(--gray-50);
+  color: var(--text-muted); padding: 2px 10px;
+  border-radius: 20px; border: 0.5px solid var(--border);
+}
+.scroll-card-body { overflow-y: auto; max-height: 340px; }
+.scroll-card-body::-webkit-scrollbar { width: 4px; }
+.scroll-card-body::-webkit-scrollbar-thumb { background: var(--gray-100); border-radius: 2px; }
+
+/* ── Admin table ── */
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.admin-table th {
+  text-align: left; padding: 9px 14px;
+  font-size: 0.68rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); background: var(--gray-50);
+  border-bottom: 0.5px solid var(--border);
+  position: sticky; top: 0; z-index: 2; white-space: nowrap;
+}
+.admin-table td {
+  padding: 10px 14px; border-bottom: 0.5px solid var(--border);
+  color: var(--text); vertical-align: middle;
+}
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tbody tr { transition: background 0.12s; }
+.admin-table tbody tr:hover td { background: var(--gray-50); }
+.row-disabled td { opacity: 0.45; }
+
+/* ── Icon buttons ── */
+.icon-btn {
+  width: 28px; height: 28px; border-radius: var(--radius-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0.5px solid var(--border-md); background: var(--bg-card);
+  cursor: pointer; text-decoration: none; transition: all 0.15s;
+  color: var(--text-muted);
+}
+.icon-btn:hover { border-color: var(--green-200); background: var(--green-50); color: var(--green-600); }
+.icon-btn svg { width: 13px; height: 13px; }
+
+/* ── Toggle btn ── */
+.toggle-btn {
+  font-size: 0.7rem; padding: 3px 12px;
+  border-radius: 20px; border: none; cursor: pointer;
+  font-family: inherit; font-weight: 500; transition: all 0.15s;
+}
+.toggle-disable { background: var(--coral-50); color: var(--coral-400); }
+.toggle-disable:hover { background: var(--coral-400); color: white; }
+.toggle-enable  { background: var(--green-50); color: var(--green-600); }
+.toggle-enable:hover  { background: var(--green-400); color: white; }
+
+/* ── Search ── */
+.search-input {
+  width: 100%; padding: 8px 14px 8px 36px;
+  border: 0.5px solid var(--border-md); border-radius: var(--radius-sm);
+  font-family: inherit; font-size: 0.825rem; background: var(--bg);
+  color: var(--text); outline: none; transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--green-200); }
+.search-wrap { position: relative; }
+.search-wrap svg {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: var(--gray-400); pointer-events: none;
+}
+
+/* ── Sort btns ── */
+.sort-btn {
+  font-size: 0.72rem; padding: 4px 10px; border-radius: 20px;
+  border: 0.5px solid var(--border-md); color: var(--text-muted);
+  text-decoration: none; transition: all 0.15s; background: var(--bg-card);
+}
+.sort-btn:hover { border-color: var(--green-200); color: var(--green-600); background: var(--green-50); }
+.sort-active { background: var(--green-400) !important; color: white !important; border-color: var(--green-400) !important; }
+
+/* ── Profile ── */
+.profile-header {
+  background: var(--bg-card); border: 0.5px solid var(--border);
+  border-radius: var(--radius); padding: 2rem;
+  display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.profile-avatar-lg {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-400), var(--green-600));
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 600; flex-shrink: 0;
+}
+.profile-name { font-family: "DM Serif Display", serif; font-size: 1.4rem; letter-spacing: -0.01em; }
+.profile-username { font-size: 0.825rem; color: var(--green-400); margin-top: 2px; }
+.profile-meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; }
+.profile-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+.detail-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+.detail-cell {
+  background: var(--bg-card); border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 1rem;
+}
+.detail-cell .dc-label {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); margin-bottom: 6px;
+}
+.detail-cell .dc-val { font-size: 1rem; font-weight: 500; color: var(--text); }
+
+@media (max-width: 768px) {
+  .topnav-links .topnav-link span { display: none; }
+  .topnav-username { display: none; }
+  .profile-header { flex-direction: column; align-items: flex-start; }
+  .profile-actions { margin-left: 0; }
+  .admin-content { padding: 1rem; }
+}
+</style>
+</head>
+<body style="margin:0;background:var(--bg);">
+
+<!-- Top navbar -->
+<nav class="admin-topnav">
+  <a class="topnav-logo" href="{% url 'admin_dashboard' %}">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-9 8"/></svg>
+    </div>
+    <span class="logo-text">Krishi<span>Mitra</span></span>
+    <span class="admin-badge">Admin</span>
+  </a>
+
+  <div class="topnav-links">
+    <a class="topnav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
+       href="{% url 'admin_dashboard' %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
+    </a>
+
+    <div class="topnav-sep"></div>
+
+    <a class="topnav-link {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}"
+       href="{% url 'admin_users' %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Users</span>
+    </a>
+    <a class="topnav-link {% if request.resolver_match.url_name == 'admin_crops' %}active{% endif %}"
+       href="{% url 'admin_crops' %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-9 8"/></svg>
+      <span>Crops</span>
+    </a>
+    <a class="topnav-link {% if request.resolver_match.url_name == 'admin_diseases' %}active{% endif %}"
+       href="{% url 'admin_diseases' %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Diseases</span>
+    </a>
+    <a class="topnav-link {% if request.resolver_match.url_name == 'admin_prices' %}active{% endif %}"
+       href="{% url 'admin_prices' %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span>Prices</span>
+    </a>
+  </div>
+
+  <div class="topnav-right">
+    <div class="topnav-user">
+      <div class="topnav-avatar">{{ user.username|slice:":1"|upper }}</div>
+      <span class="topnav-username">{{ user.get_full_name|default:user.username }}</span>
+    </div>
+    <a class="topnav-logout" href="{% url 'logout' %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Logout
+    </a>
+  </div>
+</nav>
+
+{% if messages %}
+<div class="admin-messages">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main class="admin-content">
+  {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

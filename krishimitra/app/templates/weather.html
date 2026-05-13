@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Weather Insights — KrishiMitra AI{% endblock %}
+
+{% block content %}
+<div class="feature-page">
+  <div class="page-header fade-up">
+    <a href="{% url 'dashboard' %}" class="breadcrumb">← Dashboard</a>
+    <h2>Weather Insights</h2>
+    <p>Real-time weather for <strong>{{ current_city }}</strong> with farming recommendations.</p>
+  </div>
+
+  {% if weather %}
+  <div class="card fade-up fade-up-d1">
+    <div class="weather-big">
+      <div class="city">📍 {{ weather.city }}</div>
+      <div class="temp-display">{{ weather.temp }}<sup>°C</sup></div>
+      <div class="condition">{{ weather.description }} · Feels like {{ weather.feels_like }}°C · Humidity {{ weather.humidity }}%</div>
+    </div>
+
+    <div class="weather-detail-grid">
+      <div class="wd-cell"><div class="wd-icon">🌧️</div><div class="wd-val">{{ weather.rainfall }} mm</div><div class="wd-label">Rainfall</div></div>
+      <div class="wd-cell"><div class="wd-icon">💧</div><div class="wd-val">{{ weather.humidity }}%</div><div class="wd-label">Humidity</div></div>
+      <div class="wd-cell"><div class="wd-icon">🌬️</div><div class="wd-val">{{ weather.wind }} km/h</div><div class="wd-label">Wind ({{ weather.wind_dir }})</div></div>
+      <div class="wd-cell"><div class="wd-icon">🌡️</div><div class="wd-val">{{ weather.temp_min }}°C</div><div class="wd-label">Min Temp</div></div>
+      <div class="wd-cell"><div class="wd-icon">🌡️</div><div class="wd-val">{{ weather.temp_max }}°C</div><div class="wd-label">Max Temp</div></div>
+      <div class="wd-cell"><div class="wd-icon">🔆</div><div class="wd-val">{{ weather.sunrise }}</div><div class="wd-label">Sunrise</div></div>
+    </div>
+
+    {% if forecast %}
+    <div class="form-section-label" style="margin: 1.5rem 0 0.75rem;">7-Day Forecast</div>
+    <div class="forecast-row">
+      {% for day in forecast %}
+      <div class="forecast-day {% if forloop.first %}today{% endif %}">
+        <div class="fd-day">{% if forloop.first %}Today{% else %}{{ day.day }}{% endif %}</div>
+        <div class="fd-icon">{{ day.icon }}</div>
+        <div class="fd-hi">{{ day.max }}°</div>
+        <div class="fd-lo">{{ day.min }}°</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if advisory %}
+    <div class="farming-advisory">
+      <div class="adv-label">🌾 Farming Advisory</div>
+      <p>{{ advisory }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {% elif error %}
+  <div class="card fade-up" style="text-align:center;padding:2.5rem;">
+    <div style="font-size:2rem;margin-bottom:1rem;">🌧️</div>
+    <p style="color:var(--text-muted);font-size:0.875rem;">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Update City Section -->
+  <div class="card fade-up" style="margin-top:1.25rem;">
+    <div class="card-header">
+      <span class="card-title">📍 Update Your Location</span>
+    </div>
+    <p style="font-size:0.825rem;color:var(--text-muted);margin-bottom:1rem;">
+      Currently set to <strong>{{ current_city }}</strong>. Change it to get weather for a different city.
+    </p>
+    <form method="POST" style="display:flex;gap:10px;align-items:flex-end;">
+      {% csrf_token %}
+      <div class="form-group" style="flex:1;margin-bottom:0;">
+        <label class="form-label">New City / District</label>
+        <input class="form-input" type="text" name="city"
+               placeholder="e.g. Palakkad, Mumbai, Bengaluru"
+               value="{{ city_form.city.value|default:'' }}" autocomplete="off">
+      </div>
+      <button type="submit" class="btn-primary" style="white-space:nowrap;">Update →</button>
+    </form>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" style="margin-top:0.75rem;">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

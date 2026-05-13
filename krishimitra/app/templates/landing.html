@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% block title %}KrishiMitra AI — Smart Farming Platform{% endblock %}
+
+{% block content %}
+
+<div class="hero fade-up">
+  <div class="hero-badge">
+    <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
+    AI-Powered Agricultural Platform
+  </div>
+  <h1>Smart farming decisions,<br><em>powered by AI</em></h1>
+  <p>KrishiMitra brings crop intelligence, disease detection, market prices, and weather forecasts together — so every farmer can make confident, data-driven choices.</p>
+  <div class="hero-actions">
+    {% if user.is_authenticated %}
+      <a href="{% url 'dashboard' %}" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Go to Dashboard
+      </a>
+    {% else %}
+      <a href="{% url 'register' %}" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Get started free
+      </a>
+    {% endif %}
+    <a href="{% url 'chatbot' %}" class="btn-secondary">Talk to KrishiMitra →</a>
+  </div>
+</div>
+
+<div class="features-grid fade-up fade-up-d1" style="margin: 3rem auto 0; max-width: 960px;">
+  <a class="feature-cell" href="{% url 'crop' %}">
+    <div class="feature-icon" style="background: var(--green-50);">🌾</div>
+    <h3>Crop Recommendation</h3>
+    <p>Get the best crop for your soil nutrients and local climate conditions.</p>
+  </a>
+  <a class="feature-cell" href="{% url 'disease' %}">
+    <div class="feature-icon" style="background: var(--coral-50);">🔬</div>
+    <h3>Disease Detection</h3>
+    <p>Upload a photo of your plant and get an instant AI diagnosis.</p>
+  </a>
+  <a class="feature-cell" href="{% url 'price' %}">
+    <div class="feature-icon" style="background: var(--amber-50);">📈</div>
+    <h3>Price Prediction</h3>
+    <p>Predict mandi prices and find the best time to sell your harvest.</p>
+  </a>
+  <a class="feature-cell" href="{% url 'weather' %}">
+    <div class="feature-icon" style="background: var(--teal-50);">🌦️</div>
+    <h3>Weather Insights</h3>
+    <p>Real-time forecasts with farming-specific advice for your region.</p>
+  </a>
+  <a class="feature-cell" href="{% url 'chatbot' %}">
+    <div class="feature-icon" style="background: var(--green-50);">💬</div>
+    <h3>AI Chatbot</h3>
+    <p>Ask any agricultural question in plain language, 24/7.</p>
+  </a>
+</div>
+
+<div class="stats-row fade-up fade-up-d2">
+  <div>
+    <div class="stat-num">94%</div>
+    <div class="stat-label">Disease detection accuracy</div>
+  </div>
+  <div>
+    <div class="stat-num">500+</div>
+    <div class="stat-label">Mandi markets tracked</div>
+  </div>
+  <div>
+    <div class="stat-num">22</div>
+    <div class="stat-label">Crops supported</div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <div class="logo-icon" style="width:28px;height:28px;">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;">
+            <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-9 8"/>
+          </svg>
+        </div>
+        <span class="logo-text">Krishi<span>Mitra</span></span>
+      </div>
+      <p class="footer-tagline">Intelligent farming decisions powered by AI — built for every Indian farmer.</p>
+      <div class="footer-contact">✉️ abhinandhvl117@gmail.com</div>
+    </div>
+
+    <div class="footer-links-group">
+      <div class="footer-col">
+        <div class="footer-col-title">Features</div>
+        <a href="{% url 'crop' %}">Crop Recommendation</a>
+        <a href="{% url 'disease' %}">Disease Detection</a>
+        <a href="{% url 'price' %}">Price Prediction</a>
+        <a href="{% url 'weather' %}">Weather Insights</a>
+        <a href="{% url 'chatbot' %}">AI Chatbot</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Account</div>
+        {% if user.is_authenticated %}
+          <a href="{% url 'dashboard' %}">Dashboard</a>
+          <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+          <a href="{% url 'register' %}">Register</a>
+          <a href="{% url 'login' %}">Login</a>
+          <a href="{% url 'forgot_password' %}">Forgot Password</a>
+        {% endif %}
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Technology</div>
+        <span>Django · FastAPI</span>
+        <span>TensorFlow · Scikit-learn</span>
+        <span>Llama 3 via Groq</span>
+        <span>OpenWeatherMap API</span>
+        <span>Govt. of India Data</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2026 KrishiMitra AI · Built by Abhinandh Vijayan L</span>
+    <span>Made with 🌿 for Indian farmers</span>
+  </div>
+</footer>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.site-footer { background: var(--gray-900); margin-top: 5rem; }
+.footer-inner {
+  max-width: 960px; margin: 0 auto;
+  padding: 3rem 2rem 2rem;
+  display: flex; gap: 3rem; flex-wrap: wrap;
+}
+.footer-brand { flex: 1; min-width: 220px; }
+.footer-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
+.footer-logo .logo-icon { background: var(--green-400); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.footer-logo .logo-text { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: white; }
+.footer-logo .logo-text span { color: var(--green-400); }
+.footer-tagline { font-size: 0.825rem; color: var(--gray-400); line-height: 1.65; margin-bottom: 1rem; max-width: 260px; }
+.footer-contact { font-size: 0.78rem; color: var(--gray-400); }
+.footer-links-group { display: flex; gap: 3rem; flex-wrap: wrap; }
+.footer-col { display: flex; flex-direction: column; gap: 8px; min-width: 120px; }
+.footer-col-title { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-200); margin-bottom: 4px; }
+.footer-col a, .footer-col span { font-size: 0.825rem; color: var(--gray-400); text-decoration: none; transition: color 0.15s; }
+.footer-col a:hover { color: var(--green-400); }
+.footer-bottom {
+  max-width: 960px; margin: 0 auto; padding: 1.25rem 2rem;
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  font-size: 0.78rem; color: var(--gray-600);
+}
+@media (max-width: 640px) {
+  .footer-inner { flex-direction: column; gap: 2rem; }
+  .footer-links-group { gap: 1.5rem; }
+  .footer-bottom { flex-direction: column; align-items: center; text-align: center; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Verify OTP — KrishiMitra AI{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card fade-up">
+
+    <div style="text-align:center; margin-bottom: 1.5rem;">
+      <div style="width:52px; height:52px; background:var(--green-50); border-radius:50%;
+                  display:flex; align-items:center; justify-content:center;
+                  margin: 0 auto 1rem; font-size:1.4rem;">🔐</div>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:1.5rem; letter-spacing:-0.01em;">Verify OTP</h2>
+      <p class="auth-sub" style="margin-top:6px;">Enter the one-time password sent to your email.</p>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" style="margin-bottom:1rem;">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+
+      {% for field in form %}
+        <div class="form-group">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+          {% if field.field.widget.input_type == 'text' or field.field.widget.input_type == 'number' %}
+            <input
+              class="form-input otp-input"
+              type="{{ field.field.widget.input_type }}"
+              id="{{ field.id_for_label }}"
+              name="{{ field.html_name }}"
+              value="{{ field.value|default:'' }}"
+              maxlength="6"
+              autocomplete="one-time-code"
+              inputmode="numeric"
+              placeholder="Enter OTP"
+              autofocus
+            >
+          {% else %}
+            {{ field }}
+          {% endif %}
+
+          {% if field.errors %}
+            <div class="form-error">{{ field.errors.0 }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <button type="submit" class="btn-primary" style="width:100%; justify-content:center; margin-top:0.5rem;">
+        Verify OTP →
+      </button>
+    </form>
+
+    <hr class="divider">
+    <div class="auth-footer">
+      Didn't receive it? <a href="{% url 'forgot_password' %}">Resend OTP</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.otp-input {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.4em;
+  padding: 12px 14px;
+  height: 3rem;
+  color: var(--green-600);
+}
+.otp-input::placeholder {
+  letter-spacing: 0.1em;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--gray-200);
+}
+</style>
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends 'admin_base.html' %}
+{% block title %}{{ target_user.username }} — Admin KrishiMitra{% endblock %}
+{% block topbar_title %}User Detail{% endblock %}
+
+{% block content %}
+
+<!-- Profile header -->
+<div class="profile-header">
+  <div class="profile-avatar-lg">{{ target_user.username|slice:":1"|upper }}</div>
+  <div style="flex:1;">
+    <div class="profile-name">{{ target_user.get_full_name|default:target_user.username }}</div>
+    <div class="profile-username">@{{ target_user.username }}</div>
+    <div class="profile-meta">
+      Joined {{ target_user.date_joined|date:"d F Y" }} &nbsp;·&nbsp;
+      {% if profile.is_active_account %}
+        <span style="color:var(--green-400);">● Active</span>
+      {% else %}
+        <span style="color:var(--coral-400);">● Disabled</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="profile-actions">
+    <form method="POST" style="display:inline;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="toggle">
+      {% if profile.is_active_account %}
+        <button type="submit"
+          class="toggle-btn toggle-disable" style="padding:8px 18px;font-size:0.825rem;"
+          onclick="return confirm('Disable account for {{ target_user.username }}?')">
+          Disable User
+        </button>
+      {% else %}
+        <button type="submit"
+          class="toggle-btn toggle-enable" style="padding:8px 18px;font-size:0.825rem;"
+          onclick="return confirm('Enable account for {{ target_user.username }}?')">
+          Enable User
+        </button>
+      {% endif %}
+    </form>
+    <a href="{% url 'admin_users' %}" class="btn-secondary btn-sm">← Back</a>
+  </div>
+</div>
+
+<!-- Info grid -->
+<div class="detail-grid">
+  <div class="detail-cell">
+    <div class="dc-label">Full Name</div>
+    <div class="dc-val">{{ target_user.get_full_name|default:"—" }}</div>
+  </div>
+  <div class="detail-cell">
+    <div class="dc-label">Username</div>
+    <div class="dc-val">@{{ target_user.username }}</div>
+  </div>
+  <div class="detail-cell">
+    <div class="dc-label">Email</div>
+    <div class="dc-val">{{ target_user.email|default:"—" }}</div>
+  </div>
+  <div class="detail-cell">
+    <div class="dc-label">City</div>
+    <div class="dc-val">{{ profile.city|default:"—" }}</div>
+  </div>
+  <div class="detail-cell">
+    <div class="dc-label">Joined</div>
+    <div class="dc-val">{{ target_user.date_joined|date:"d F Y, H:i" }}</div>
+  </div>
+  <div class="detail-cell">
+    <div class="dc-label">Account Status</div>
+    <div class="dc-val">
+      {% if profile.is_active_account %}
+        <span class="badge badge-green">Active</span>
+      {% else %}
+        <span class="badge badge-coral">Disabled</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Activity summary -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem;">
+  <div class="metric-card">
+    <div class="label">Crop Predictions</div>
+    <div class="value">{{ crop_count }}</div>
+    <span class="badge badge-green">Total</span>
+  </div>
+  <div class="metric-card">
+    <div class="label">Disease Scans</div>
+    <div class="value">{{ disease_count }}</div>
+    <span class="badge badge-coral">Total</span>
+  </div>
+  <div class="metric-card">
+    <div class="label">Price Predictions</div>
+    <div class="value">{{ price_count }}</div>
+    <span class="badge badge-amber">Total</span>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+
+  <!-- Crop history -->
+  <div class="scroll-card">
+    <div class="scroll-card-header">
+      <span class="scroll-card-title">🌾 Crop Predictions</span>
+      <span class="scroll-card-count">{{ crop_count }} total</span>
+    </div>
+    <div class="scroll-card-body">
+      <table class="admin-table">
+        <thead><tr><th>Crop</th><th>N · P · K</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for obj in crop_history %}
+          <tr>
+            <td><span class="badge badge-green">{{ obj.recommended_crop|title }}</span></td>
+            <td style="font-size:0.72rem;color:var(--text-muted);">{{ obj.nitrogen }} · {{ obj.phosphorus }} · {{ obj.potassium }}</td>
+            <td style="font-size:0.72rem;color:var(--text-muted);">{{ obj.created_at|date:"d M, H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:1.5rem;">No predictions yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Disease history -->
+  <div class="scroll-card">
+    <div class="scroll-card-header">
+      <span class="scroll-card-title">🔬 Disease Scans</span>
+      <span class="scroll-card-count">{{ disease_count }} total</span>
+    </div>
+    <div class="scroll-card-body">
+      <table class="admin-table">
+        <thead><tr><th>Disease</th><th>Crop</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for obj in disease_history %}
+          <tr>
+            <td><span class="badge badge-coral" style="white-space:normal;line-height:1.4;">{{ obj.disease_name }}</span></td>
+            <td style="font-size:0.75rem;">{{ obj.crop_type|title }}</td>
+            <td style="font-size:0.72rem;color:var(--text-muted);">{{ obj.created_at|date:"d M, H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:1.5rem;">No scans yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Price history -->
+  <div class="scroll-card" style="grid-column:1/-1;">
+    <div class="scroll-card-header">
+      <span class="scroll-card-title">💹 Price Predictions</span>
+      <span class="scroll-card-count">{{ price_count }} total</span>
+    </div>
+    <div class="scroll-card-body">
+      <table class="admin-table">
+        <thead><tr><th>Commodity</th><th>State</th><th>District</th><th>Predicted Price</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for obj in price_history %}
+          <tr>
+            <td><span class="badge badge-amber">{{ obj.commodity }}</span></td>
+            <td style="font-size:0.78rem;">{{ obj.state }}</td>
+            <td style="font-size:0.78rem;">{{ obj.district }}</td>
+            <td style="font-weight:500;">₹{{ obj.predicted_price|floatformat:2 }}</td>
+            <td style="font-size:0.72rem;color:var(--text-muted);">{{ obj.created_at|date:"d M, H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1.5rem;">No predictions yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

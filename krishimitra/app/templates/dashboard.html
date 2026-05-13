@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — KrishiMitra AI{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+  <div class="dash-header fade-up">
+    <h2>{{ time_of_day }}, {{ user.first_name|default:user.username }} 🌿</h2>
+    <p>Here's what's happening on your farm today</p>
+  </div>
+
+  <div class="metric-cards fade-up fade-up-d1">
+    <div class="metric-card">
+      <div class="label">Recommended Crop</div>
+      <div class="value" style="font-size:1.2rem;font-weight:500;">{{ latest_crop|default:"—" }}</div>
+      <div class="sub">Based on your last soil input</div>
+      <span class="badge badge-green">{{ crop_confidence|default:"Run analysis" }}</span>
+    </div>
+    <div class="metric-card">
+      <div class="label">Today's Temperature</div>
+      <div class="value">{{ weather.temp|default:"—" }}<span style="font-size:1rem;">°C</span></div>
+      <div class="sub">{{ weather.description|default:"Weather unavailable" }}</div>
+      <span class="badge badge-amber">Humidity {{ weather.humidity|default:"—" }}%</span>
+    </div>
+    <div class="metric-card">
+      <div class="label">{{ latest_price_crop|default:"Rice" }} Price</div>
+      <div class="value" style="font-size:1.3rem;font-weight:500;">₹{{ latest_price|default:"—" }}</div>
+      <div class="sub">per quintal · {{ district|default:"your district" }}</div>
+      <span class="badge badge-teal">{{ price_trend|default:"Check prices" }}</span>
+    </div>
+    <div class="metric-card">
+      <div class="label">Plant Health</div>
+      <div class="value" style="font-size:1.2rem;font-weight:500;">{{ plant_health|default:"—" }}</div>
+      <div class="sub">{{ last_scan|default:"No scan yet" }}</div>
+      <span class="badge badge-green">{{ health_status|default:"Scan a plant" }}</span>
+    </div>
+  </div>
+
+  <div class="dash-grid fade-up fade-up-d2">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Recent Activity</span>
+        <span class="card-action">View all</span>
+      </div>
+      <div class="activity-list">
+        {% for activity in recent_activity %}
+          <div class="activity-item">
+            <div class="activity-dot" style="background: {{ activity.color }};"></div>
+            <div class="activity-info">
+              <div class="title">{{ activity.title }}</div>
+              <div class="time">{{ activity.time }} · {{ activity.detail }}</div>
+            </div>
+            <span class="activity-tag badge badge-{{ activity.badge }}">{{ activity.tag }}</span>
+          </div>
+        {% empty %}
+          <p style="font-size: 0.825rem; color: var(--text-muted); text-align: center; padding: 1.5rem 0;">
+            No activity yet — try a crop recommendation or disease scan!
+          </p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Current Weather</span>
+        <a href="{% url 'weather' %}" class="card-action">Details →</a>
+      </div>
+      <div class="weather-card">
+        <div class="weather-main">
+          <div class="weather-temp">{{ weather.temp|default:"—" }}°</div>
+          <div class="weather-info">
+            <div class="location">{{ weather.city|default:"Your location" }}</div>
+            <div class="desc">{{ weather.description|default:"" }} · Feels like {{ weather.feels_like|default:"—" }}°</div>
+          </div>
+        </div>
+        <div class="weather-stats">
+          <div class="weather-stat">
+            <div class="wlabel">Humidity</div>
+            <div class="wval">{{ weather.humidity|default:"—" }}%</div>
+          </div>
+          <div class="weather-stat">
+            <div class="wlabel">Rainfall</div>
+            <div class="wval">{{ weather.rainfall|default:"—" }} mm</div>
+          </div>
+          <div class="weather-stat">
+            <div class="wlabel">Wind</div>
+            <div class="wval">{{ weather.wind|default:"—" }} km/h</div>
+          </div>
+          <div class="weather-stat">
+            <div class="wlabel">UV Index</div>
+            <div class="wval">{{ weather.uv|default:"—" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card fade-up fade-up-d3">
+    <div class="card-header">
+      <span class="card-title">Quick Actions</span>
+    </div>
+    <div class="quick-actions">
+      <a class="qa-btn" href="{% url 'crop' %}">
+        <span class="qa-icon">🌾</span>
+        <span class="qa-title">Get Crop Advice</span>
+        <span class="qa-desc">Enter soil data to get a recommendation</span>
+      </a>
+      <a class="qa-btn" href="{% url 'disease' %}">
+        <span class="qa-icon">📷</span>
+        <span class="qa-title">Scan Plant</span>
+        <span class="qa-desc">Upload a photo for disease detection</span>
+      </a>
+      <a class="qa-btn" href="{% url 'price' %}">
+        <span class="qa-icon">💹</span>
+        <span class="qa-title">Check Prices</span>
+        <span class="qa-desc">View mandi rates and predictions</span>
+      </a>
+      <a class="qa-btn" href="{% url 'chatbot' %}">
+        <span class="qa-icon">💬</span>
+        <span class="qa-title">Ask KrishiMitra</span>
+        <span class="qa-desc">Get instant farming guidance</span>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

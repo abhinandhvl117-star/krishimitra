@@ -1,0 +1,122 @@
+{% extends 'admin_base.html' %}
+{% block title %}Users — Admin KrishiMitra{% endblock %}
+{% block topbar_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="scroll-card">
+  <div class="scroll-card-header" style="flex-wrap:wrap;gap:0.75rem;">
+    <span class="scroll-card-title">👥 All Users <span class="scroll-card-count" style="margin-left:6px;">{{ total_users }} total</span></span>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <!-- Sort -->
+      <a href="?sort=date_desc{% if search %}&q={{ search }}{% endif %}" class="sort-btn {% if current_sort == 'date_desc' %}sort-active{% endif %}">Newest</a>
+      <a href="?sort=date_asc{% if search %}&q={{ search }}{% endif %}"  class="sort-btn {% if current_sort == 'date_asc'  %}sort-active{% endif %}">Oldest</a>
+      <a href="?sort=alpha_asc{% if search %}&q={{ search }}{% endif %}" class="sort-btn {% if current_sort == 'alpha_asc' %}sort-active{% endif %}">A → Z</a>
+      <a href="?sort=alpha_desc{% if search %}&q={{ search }}{% endif %}"class="sort-btn {% if current_sort == 'alpha_desc'%}sort-active{% endif %}">Z → A</a>
+    </div>
+  </div>
+
+  <!-- Search bar -->
+  <div style="padding:0.75rem 1.25rem;border-bottom:0.5px solid var(--border);background:var(--gray-50);">
+    <div class="search-wrap" style="max-width:400px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" type="text" id="userSearch"
+             placeholder="Search by name, username or email…"
+             value="{{ search }}" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="scroll-card-body" style="max-height:calc(100vh - 280px);">
+    <table class="admin-table" id="usersTable">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>City</th>
+          <th>Joined</th>
+          <th>Predictions</th>
+          <th>Status</th>
+          <th>Action</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="usersTbody">
+        {% for item in user_list %}
+        <tr class="user-row {% if not item.active %}row-disabled{% endif %}"
+            data-name="{{ item.user.get_full_name|lower }}"
+            data-username="{{ item.user.username|lower }}"
+            data-email="{{ item.user.email|lower }}">
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:var(--green-400);color:white;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;flex-shrink:0;">
+                {{ item.user.username|slice:":1"|upper }}
+              </div>
+              <div>
+                <div style="font-weight:500;font-size:0.825rem;">{{ item.user.get_full_name|default:item.user.username }}</div>
+                <div style="font-size:0.72rem;color:var(--text-muted);">@{{ item.user.username }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="color:var(--text-muted);font-size:0.78rem;">{{ item.user.email|default:"—" }}</td>
+          <td style="font-size:0.78rem;">{{ item.profile.city|default:"—" }}</td>
+          <td style="font-size:0.75rem;color:var(--text-muted);">{{ item.user.date_joined|date:"d M Y" }}</td>
+          <td>
+            <div style="font-size:0.72rem;color:var(--text-muted);line-height:1.8;">
+              🌾 {{ item.crops }} &nbsp; 🔬 {{ item.scans }} &nbsp; 💹 {{ item.prices }}
+            </div>
+          </td>
+          <td>
+            {% if item.active %}<span class="badge badge-green">Active</span>
+            {% else %}<span class="badge badge-coral">Disabled</span>{% endif %}
+          </td>
+          <td>
+            <form method="POST" action="{% url 'admin_users' %}" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="toggle_user_id" value="{{ item.user.pk }}">
+              <input type="hidden" name="sort" value="{{ current_sort }}">
+              <button type="submit"
+                class="toggle-btn {% if item.active %}toggle-disable{% else %}toggle-enable{% endif %}"
+                onclick="return confirm('{% if item.active %}Disable{% else %}Enable{% endif %} {{ item.user.username }}?')">
+                {% if item.active %}Disable{% else %}Enable{% endif %}
+              </button>
+            </form>
+          </td>
+          <td>
+            <a href="{% url 'admin_user_detail' item.user.pk %}" class="icon-btn" title="View profile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:3rem;">No users registered yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div id="noResults" style="display:none;text-align:center;padding:2.5rem;color:var(--text-muted);font-size:0.875rem;">
+      No users match your search.
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Live search
+const searchInput = document.getElementById('userSearch');
+searchInput.addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  const rows = document.querySelectorAll('.user-row');
+  let visible = 0;
+  rows.forEach(row => {
+    const name     = row.dataset.name     || '';
+    const username = row.dataset.username || '';
+    const email    = row.dataset.email    || '';
+    const match = !q || name.includes(q) || username.includes(q) || email.includes(q);
+    row.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+});
+// Focus search on load
+searchInput.focus();
+</script>
+{% endblock %}
+{% endblock %}

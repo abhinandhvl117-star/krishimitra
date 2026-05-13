@@ -1,0 +1,30 @@
+{% extends 'admin_base.html' %}
+{% block title %}Price Predictions — Admin KrishiMitra{% endblock %}
+{% block topbar_title %}Price Predictions{% endblock %}
+{% block content %}
+<div class="scroll-card">
+  <div class="scroll-card-header">
+    <span class="scroll-card-title">💹 All Price Predictions</span>
+    <span class="scroll-card-count">{{ total }} total</span>
+  </div>
+  <div class="scroll-card-body" style="max-height:calc(100vh - 220px);">
+    <table class="admin-table">
+      <thead><tr><th>User</th><th>Commodity</th><th>State</th><th>District</th><th>Predicted Price</th><th>Date</th></tr></thead>
+      <tbody>
+        {% for obj in objects %}
+        <tr>
+          <td><div style="font-weight:500;font-size:0.8rem;">{{ obj.user.username }}</div></td>
+          <td><span class="badge badge-amber">{{ obj.commodity }}</span></td>
+          <td style="font-size:0.78rem;">{{ obj.state }}</td>
+          <td style="font-size:0.78rem;">{{ obj.district }}</td>
+          <td style="font-weight:500;">₹{{ obj.predicted_price|floatformat:2 }}</td>
+          <td style="font-size:0.72rem;color:var(--text-muted);">{{ obj.created_at|date:"d M, H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:3rem;">No price predictions yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

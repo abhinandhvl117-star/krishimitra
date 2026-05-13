@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block title %}Chatbot — KrishiMitra AI{% endblock %}
+
+{% block content %}
+<div class="feature-page">
+  <div class="page-header fade-up">
+    <a href="{% url 'dashboard' %}" class="breadcrumb">← Dashboard</a>
+    <h2>KrishiMitra Assistant</h2>
+    <p>Powered by Llama 3 · Ask anything about crops, diseases, prices, or farming advice.</p>
+  </div>
+
+  <div class="chat-container fade-up fade-up-d1">
+
+    <div style="padding: 10px 1.25rem; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 8px;">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--green-400); display: inline-block; animation: pulse 2s infinite;"></span>
+      <span style="font-size: 0.75rem; color: var(--text-muted);">Llama 3 · Groq </span>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg bot">
+        <div class="msg-avatar bot">KM</div>
+        <div class="msg-bubble">
+          Namaskaram! 🙏 I'm KrishiMitra, your AI farming assistant powered by Llama 3.
+          I can help you with crop selection, disease identification, mandi prices, irrigation advice,
+          government schemes, and much more. What would you like to know today?
+        </div>
+      </div>
+
+      {% for msg in chat_history %}
+        <div class="msg {{ msg.role }}">
+          <div class="msg-avatar {% if msg.role == 'bot' %}bot{% else %}user-av{% endif %}">
+            {% if msg.role == 'bot' %}KM{% else %}You{% endif %}
+          </div>
+          <div class="msg-bubble">{{ msg.content }}</div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="chat-suggestions" id="chat-chips">
+      <button class="chat-chip" onclick="sendChip('What crop should I plant this Kharif season in Kerala?')">🌾 Kharif crop advice</button>
+      <button class="chat-chip" onclick="sendChip('My tomato leaves have brown spots with yellow rings. What disease is it?')">🔬 Leaf disease help</button>
+      <button class="chat-chip" onclick="sendChip('What is the current MSP for rice in 2025-26?')">💰 MSP rates</button>
+      <button class="chat-chip" onclick="sendChip('How do I apply for PM-KISAN scheme?')">🏛️ Govt schemes</button>
+      <button class="chat-chip" onclick="sendChip('When should I irrigate paddy during tillering stage?')">💧 Irrigation timing</button>
+      <button class="chat-chip" onclick="sendChip('What fertilizer should I use for sandy soil with low nitrogen?')">🧪 Fertilizer advice</button>
+    </div>
+
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" type="text"
+             placeholder="Ask KrishiMitra anything about farming…" autocomplete="off">
+      <button class="chat-send" id="send-btn" onclick="sendChat()">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <polyline points="22 2 11 13" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2" stroke="white" stroke-width="2" fill="none" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .chat-send.loading { background: var(--gray-200); pointer-events: none; }
+  .msg-bubble p { margin-bottom: 6px; }
+  .msg-bubble p:last-child { margin-bottom: 0; }
+  .msg-bubble strong { font-weight: 600; color: var(--gray-900); }
+  .msg.user .msg-bubble strong { color: white; }
+  .msg-bubble ul { padding-left: 1.2rem; margin: 4px 0; }
+  .msg-bubble li { margin-bottom: 3px; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function renderMarkdown(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^[-•]\s(.+)/gm, '<li>$1</li>')
+      .replace(/(<li>[\s\S]*<\/li>)/, '<ul>$1</ul>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function appendMsg(text, role, isHtml = false) {
+    const container = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    const isBot = role === 'bot';
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    if (isHtml) bubble.innerHTML = text;
+    else bubble.textContent = text;
+    div.innerHTML = `<div class="msg-avatar ${isBot ? 'bot' : 'user-av'}">${isBot ? 'KM' : 'You'}</div>`;
+    div.appendChild(bubble);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return bubble;
+  }
+
+  function setLoading(on) {
+    document.getElementById('send-btn').classList.toggle('loading', on);
+    document.getElementById('chat-input').disabled = on;
+  }
+
+  function sendChat() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    document.getElementById('chat-chips').style.display = 'none';
+    appendMsg(msg, 'user');
+    setLoading(true);
+    const typingBubble = appendMsg('<div class="typing"><span></span><span></span><span></span></div>', 'bot', true);
+
+    fetch("{% url 'chatbot_ask' %}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ message: msg }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        setLoading(false);
+        typingBubble.innerHTML = data.reply
+          ? renderMarkdown(data.reply)
+          : (data.error || 'Something went wrong. Please try again.');
+        document.getElementById('chat-messages').scrollTop = 99999;
+      })
+      .catch(() => {
+        setLoading(false);
+        typingBubble.textContent = 'Connection error. Please try again.';
+      });
+  }
+
+  function sendChip(text) {
+    document.getElementById('chat-input').value = text;
+    sendChat();
+  }
+
+  function getCookie(name) {
+    let val = null;
+    document.cookie.split(';').forEach(c => {
+      const t = c.trim();
+      if (t.startsWith(name + '=')) val = decodeURIComponent(t.slice(name.length + 1));
+    });
+    return val;
+  }
+
+  document.getElementById('chat-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) sendChat();
+  });
+
+  window.addEventListener('load', () => {
+    document.getElementById('chat-messages').scrollTop = 99999;
+  });
+</script>
+{% endblock %}

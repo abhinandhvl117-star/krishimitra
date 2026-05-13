@@ -1,0 +1,29 @@
+{% extends 'admin_base.html' %}
+{% block title %}Disease Scans — Admin KrishiMitra{% endblock %}
+{% block topbar_title %}Disease Scans{% endblock %}
+{% block content %}
+<div class="scroll-card">
+  <div class="scroll-card-header">
+    <span class="scroll-card-title">🔬 All Disease Scans</span>
+    <span class="scroll-card-count">{{ total }} total</span>
+  </div>
+  <div class="scroll-card-body" style="max-height:calc(100vh - 220px);">
+    <table class="admin-table">
+      <thead><tr><th>User</th><th>Detected Disease</th><th>Crop</th><th>Part</th><th>Date</th></tr></thead>
+      <tbody>
+        {% for obj in objects %}
+        <tr>
+          <td><div style="font-weight:500;font-size:0.8rem;">{{ obj.user.username }}</div></td>
+          <td><span class="badge badge-coral" style="white-space:normal;line-height:1.5;">{{ obj.disease_name }}</span></td>
+          <td style="font-size:0.78rem;">{{ obj.crop_type|title }}</td>
+          <td style="font-size:0.78rem;">{{ obj.affected_part|title }}</td>
+          <td style="font-size:0.72rem;color:var(--text-muted);">{{ obj.created_at|date:"d M, H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:3rem;">No disease scans yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

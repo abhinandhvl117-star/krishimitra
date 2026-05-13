@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Price Prediction — KrishiMitra AI{% endblock %}
+
+{% block content %}
+<div class="feature-page">
+  <div class="page-header fade-up">
+    <a href="{% url 'dashboard' %}" class="breadcrumb">← Dashboard</a>
+    <h2>Crop Price Prediction</h2>
+    <p>Predict mandi prices using historical data from Government of India records.</p>
+  </div>
+
+  <div class="card fade-up fade-up-d1" style="margin-bottom: 1.25rem;">
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-row">
+
+        <div class="form-group">
+          <label class="form-label">State</label>
+          <select class="form-input" name="state" id="state-select" onchange="updateDistricts()">
+            <option value="">— Select State —</option>
+            {% for state in states %}
+              <option value="{{ state }}" {% if form_data.state == state %}selected{% endif %}>{{ state }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">District</label>
+          <select class="form-input" name="district" id="district-select">
+            <option value="">— Select State first —</option>
+            {% if form_data.district %}
+              <option value="{{ form_data.district }}" selected>{{ form_data.district }}</option>
+            {% endif %}
+          </select>
+        </div>
+
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Commodity</label>
+        <select class="form-input" name="commodity">
+          {% for commodity in commodities %}
+            <option value="{{ commodity }}" {% if form_data.commodity == commodity %}selected{% endif %}>{{ commodity }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn-primary">Predict Price →</button>
+    </form>
+  </div>
+
+  {% if result %}
+  <div class="result-card fade-up">
+    <div class="result-label">Predicted Mandi Price</div>
+    <div class="result-value">₹{{ result.predicted_price }} <span style="font-size:1rem;color:var(--text-muted);">/ quintal</span></div>
+    <div class="result-grid" style="margin-top: 1rem;">
+      <div class="result-mini">
+        <div class="rm-label">Commodity</div>
+        <div class="rm-val">{{ result.commodity }}</div>
+      </div>
+      <div class="result-mini">
+        <div class="rm-label">District</div>
+        <div class="rm-val">{{ result.district }}</div>
+      </div>
+      <div class="result-mini">
+        <div class="rm-label">State</div>
+        <div class="rm-val">{{ result.state }}</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const STATE_DISTRICTS = {{ state_districts_json|safe }};
+
+function updateDistricts() {
+  const state = document.getElementById('state-select').value;
+  const districtSelect = document.getElementById('district-select');
+
+  districtSelect.innerHTML = '';
+
+  if (!state || !STATE_DISTRICTS[state]) {
+    districtSelect.innerHTML = '<option value="">— Select State first —</option>';
+    return;
+  }
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = '— Select District —';
+  districtSelect.appendChild(placeholder);
+
+  const districts = STATE_DISTRICTS[state].sort();
+  districts.forEach(district => {
+    const option = document.createElement('option');
+    option.value = district;
+    option.textContent = district;
+    districtSelect.appendChild(option);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  const stateSelect = document.getElementById('state-select');
+  const selectedDistrict = "{{ form_data.district|default:'' }}";
+
+  if (stateSelect.value) {
+    updateDistricts();
+    if (selectedDistrict) {
+      const districtSelect = document.getElementById('district-select');
+      for (let opt of districtSelect.options) {
+        if (opt.value === selectedDistrict) {
+          opt.selected = true;
+          break;
+        }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

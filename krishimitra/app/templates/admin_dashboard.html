@@ -1,0 +1,163 @@
+{% extends 'admin_base.html' %}
+{% block title %}Admin Dashboard — KrishiMitra AI{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Metric Cards -->
+<div class="metric-cards" style="margin-bottom:1.5rem;">
+  <div class="metric-card">
+    <div class="label">Total Users</div>
+    <div class="value">{{ total_users }}</div>
+    <div class="sub">Registered farmers</div>
+    <span class="badge badge-green">Active platform</span>
+  </div>
+  <div class="metric-card">
+    <div class="label">Crop Predictions</div>
+    <div class="value">{{ total_crops }}</div>
+    <div class="sub">All time</div>
+    <span class="badge badge-green">Crop</span>
+  </div>
+  <div class="metric-card">
+    <div class="label">Disease Scans</div>
+    <div class="value">{{ total_diseases }}</div>
+    <div class="sub">All time</div>
+    <span class="badge badge-coral">Disease</span>
+  </div>
+  <div class="metric-card">
+    <div class="label">Price Predictions</div>
+    <div class="value">{{ total_prices }}</div>
+    <div class="sub">All time</div>
+    <span class="badge badge-amber">Price</span>
+  </div>
+</div>
+
+<!-- 4 Scrollable Sections -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+
+  <!-- Users -->
+  <div class="scroll-card">
+    <div class="scroll-card-header">
+      <span class="scroll-card-title">👥 Recent Users</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="scroll-card-count">{{ total_users }} total</span>
+        <a href="{% url 'admin_users' %}" class="card-action" style="font-size:0.75rem;color:var(--green-400);text-decoration:none;">View all →</a>
+      </div>
+    </div>
+    <div class="scroll-card-body">
+      <table class="admin-table">
+        <thead><tr><th>User</th><th>City</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for item in recent_users %}
+          <tr class="{% if not item.active %}row-disabled{% endif %}">
+            <td>
+              <div style="font-weight:500;">{{ item.user.get_full_name|default:item.user.username }}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">@{{ item.user.username }}</div>
+            </td>
+            <td>{{ item.profile.city|default:"—" }}</td>
+            <td style="color:var(--text-muted);font-size:0.75rem;">{{ item.user.date_joined|date:"d M Y" }}</td>
+            <td>
+              {% if item.active %}<span class="badge badge-green">Active</span>
+              {% else %}<span class="badge badge-coral">Disabled</span>{% endif %}
+            </td>
+            <td>
+              <a href="{% url 'admin_user_detail' item.user.pk %}" class="icon-btn" title="View user">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">No users yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Top Crop Recommendations -->
+  <div class="scroll-card">
+    <div class="scroll-card-header">
+      <span class="scroll-card-title">🌾 Top Recommendations</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="scroll-card-count">Last 10</span>
+        <a href="{% url 'admin_crops' %}" class="card-action" style="font-size:0.75rem;color:var(--green-400);text-decoration:none;">View all →</a>
+      </div>
+    </div>
+    <div class="scroll-card-body">
+      <table class="admin-table">
+        <thead><tr><th>Crop</th><th>User</th><th>N · P · K</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for obj in recent_crops %}
+          <tr>
+            <td><span class="badge badge-green">{{ obj.recommended_crop|title }}</span></td>
+            <td style="color:var(--text-muted);font-size:0.75rem;">{{ obj.user.username }}</td>
+            <td style="font-size:0.72rem;color:var(--text-muted);">{{ obj.nitrogen }} · {{ obj.phosphorus }} · {{ obj.potassium }}</td>
+            <td style="font-size:0.72rem;color:var(--text-muted);">{{ obj.created_at|date:"d M, H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:2rem;">No predictions yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Top Diseases -->
+  <div class="scroll-card">
+    <div class="scroll-card-header">
+      <span class="scroll-card-title">🔬 Top Diseases</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="scroll-card-count">Last 10</span>
+        <a href="{% url 'admin_diseases' %}" class="card-action" style="font-size:0.75rem;color:var(--green-400);text-decoration:none;">View all →</a>
+      </div>
+    </div>
+    <div class="scroll-card-body">
+      <table class="admin-table">
+        <thead><tr><th>Disease</th><th>User</th><th>Crop</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for obj in recent_diseases %}
+          <tr>
+            <td><span class="badge badge-coral" style="white-space:normal;line-height:1.4;">{{ obj.disease_name }}</span></td>
+            <td style="color:var(--text-muted);font-size:0.75rem;">{{ obj.user.username }}</td>
+            <td style="font-size:0.75rem;">{{ obj.crop_type|title }}</td>
+            <td style="font-size:0.72rem;color:var(--text-muted);">{{ obj.created_at|date:"d M, H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:2rem;">No scans yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Top Price Predictions -->
+  <div class="scroll-card">
+    <div class="scroll-card-header">
+      <span class="scroll-card-title">💹 Top Price Predictions</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="scroll-card-count">Last 10</span>
+        <a href="{% url 'admin_prices' %}" class="card-action" style="font-size:0.75rem;color:var(--green-400);text-decoration:none;">View all →</a>
+      </div>
+    </div>
+    <div class="scroll-card-body">
+      <table class="admin-table">
+        <thead><tr><th>Commodity</th><th>User</th><th>District</th><th>Price</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for obj in recent_prices %}
+          <tr>
+            <td><span class="badge badge-amber">{{ obj.commodity }}</span></td>
+            <td style="color:var(--text-muted);font-size:0.75rem;">{{ obj.user.username }}</td>
+            <td style="font-size:0.75rem;">{{ obj.district }}</td>
+            <td style="font-weight:500;">₹{{ obj.predicted_price|floatformat:0 }}</td>
+            <td style="font-size:0.72rem;color:var(--text-muted);">{{ obj.created_at|date:"d M, H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">No predictions yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

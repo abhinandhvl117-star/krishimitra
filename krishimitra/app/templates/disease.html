@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Disease Detection — KrishiMitra AI{% endblock %}
+
+{% block content %}
+<div class="feature-page">
+  <div class="page-header fade-up">
+    <a href="{% url 'dashboard' %}" class="breadcrumb">← Dashboard</a>
+    <h2>Plant Disease Detection</h2>
+    <p>Upload a clear photo of the affected plant leaf or stem for AI diagnosis.</p>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="upload-zone fade-up fade-up-d1" id="upload-zone">
+      <input type="file" id="disease-image" name="image" accept="image/*" required>
+      <span class="upload-icon">📷</span>
+      <p><strong>Click to upload</strong> or drag and drop your plant photo here</p>
+      <p style="margin-top: 8px; font-size: 0.78rem;">Supports JPG, PNG, WEBP · Max 10 MB</p>
+    </div>
+
+    <!-- <div class="card fade-up fade-up-d2" style="margin-bottom: 1.25rem;">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Crop Type</label>
+          <select class="form-input" name="crop_type">
+            <option value="tomato">Tomato</option>
+            <option value="rice">Rice</option>
+            <option value="wheat">Wheat</option>
+            <option value="maize">Maize</option>
+            <option value="potato">Potato</option>
+            <option value="cotton">Cotton</option>
+            <option value="strawberry">Strawberry</option>
+            <option value="grape">Grape</option>
+            <option value="apple">Apple</option>
+            <option value="corn">Corn</option>
+            <option value="pepper">Pepper</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Affected Part</label>
+          <select class="form-input" name="affected_part">
+            <option value="leaf">Leaf</option>
+            <option value="stem">Stem</option>
+            <option value="fruit">Fruit</option>
+            <option value="root">Root</option>
+          </select>
+        </div>
+      </div> 
+      </div>-->
+    <button type="submit" class="btn-primary">Analyze Image →</button>
+  </form>
+
+  {% if result %}
+  <div class="result-card fade-up">
+    <div class="disease-result">
+      <div class="disease-badge" style="background: var(--coral-50);">🍂</div>
+      <div class="disease-info">
+        <h3>{{ result.disease_name }}</h3>
+        <div class="confidence">Detected on: {{ result.crop }} · {{ result.part }}</div>
+      </div>
+    </div>
+    <div class="treatment-list">
+      {% if result.cause %}
+      <div style="margin-bottom: 1rem;">
+        <div class="tlabel">Cause</div>
+        <div class="treatment-item">{{ result.cause }}</div>
+      </div>
+      {% endif %}
+      {% if result.cure %}
+      <div>
+        <div class="tlabel">Recommended Treatment</div>
+        <div class="treatment-item">{{ result.cure }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
