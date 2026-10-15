@@ -3,9 +3,21 @@
 
 {% block content %}
 <div class="dashboard">
-  <div class="dash-header fade-up">
-    <h2>{{ time_of_day }}, {{ user.first_name|default:user.username }} 🌿</h2>
-    <p>Here's what's happening on your farm today</p>
+
+  <!-- Header with username card -->
+  <div class="dash-header fade-up" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem;">
+    <div>
+      <h2>Good {{ time_of_day }} 🌿</h2>
+      <p>Here's what's happening on your farm today</p>
+    </div>
+    <div class="user-profile-card">
+      <div class="user-profile-avatar">{{ user.username|slice:":1"|upper }}</div>
+      <div class="user-profile-info">
+        <div class="user-profile-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="user-profile-username">@{{ user.username }}</div>
+        {% if user.email %}<div class="user-profile-email">{{ user.email }}</div>{% endif %}
+      </div>
+    </div>
   </div>
 
   <div class="metric-cards fade-up fade-up-d1">
@@ -22,7 +34,7 @@
       <span class="badge badge-amber">Humidity {{ weather.humidity|default:"—" }}%</span>
     </div>
     <div class="metric-card">
-      <div class="label">{{ latest_price_crop|default:"Rice" }} Price</div>
+      <div class="label">{{ latest_price_crop|default:"Commodity" }} Price</div>
       <div class="value" style="font-size:1.3rem;font-weight:500;">₹{{ latest_price|default:"—" }}</div>
       <div class="sub">per quintal · {{ district|default:"your district" }}</div>
       <span class="badge badge-teal">{{ price_trend|default:"Check prices" }}</span>
@@ -39,7 +51,6 @@
     <div class="card">
       <div class="card-header">
         <span class="card-title">Recent Activity</span>
-        <span class="card-action">View all</span>
       </div>
       <div class="activity-list">
         {% for activity in recent_activity %}
@@ -68,8 +79,8 @@
         <div class="weather-main">
           <div class="weather-temp">{{ weather.temp|default:"—" }}°</div>
           <div class="weather-info">
-            <div class="location">{{ weather.city|default:"Your location" }}</div>
-            <div class="desc">{{ weather.description|default:"" }} · Feels like {{ weather.feels_like|default:"—" }}°</div>
+            <div class="location">{{ weather.city|default:"Set location in Weather page" }}</div>
+            <div class="desc">{{ weather.description|default:"" }}{% if weather.feels_like %} · Feels like {{ weather.feels_like }}°{% endif %}</div>
           </div>
         </div>
         <div class="weather-stats">
@@ -90,6 +101,11 @@
             <div class="wval">{{ weather.uv|default:"—" }}</div>
           </div>
         </div>
+        {% if not weather %}
+        <div style="text-align:center; padding: 1rem 0;">
+          <a href="{% url 'weather' %}" class="btn-primary btn-sm">Set your location →</a>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -121,5 +137,127 @@
       </a>
     </div>
   </div>
+
+  <!-- Edit Profile Section -->
+  <div class="card fade-up fade-up-d3" style="margin-top:1rem;">
+    <div class="card-header">
+      <span class="card-title">✏️ Edit Profile</span>
+      <button class="card-action" onclick="toggleEditProfile()" id="edit-toggle-btn">Edit</button>
+    </div>
+
+    <!-- Display mode -->
+    <div id="profile-display" style="padding:0.25rem 0;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+        <div class="profile-info-cell">
+          <div class="pic-label">First Name</div>
+          <div class="pic-val">{{ user.first_name|default:"—" }}</div>
+        </div>
+        <div class="profile-info-cell">
+          <div class="pic-label">Last Name</div>
+          <div class="pic-val">{{ user.last_name|default:"—" }}</div>
+        </div>
+        <div class="profile-info-cell">
+          <div class="pic-label">Username</div>
+          <div class="pic-val">@{{ user.username }}</div>
+        </div>
+        <div class="profile-info-cell">
+          <div class="pic-label">Email</div>
+          <div class="pic-val">{{ user.email|default:"—" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit mode -->
+    <div id="profile-edit" style="display:none;">
+      {% if profile_messages %}
+        {% for msg in profile_messages %}
+          <div class="alert alert-{{ msg.tags }}" style="margin-bottom:1rem;">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+      <form method="POST" action="{% url 'edit_profile' %}">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input class="form-input" type="text" name="first_name"
+                   value="{{ user.first_name }}" placeholder="First name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input class="form-input" type="text" name="last_name"
+                   value="{{ user.last_name }}" placeholder="Last name">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input class="form-input" type="text" name="username"
+                   value="{{ user.username }}" placeholder="Username" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" name="email"
+                   value="{{ user.email }}" placeholder="Email address">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:0.25rem;">
+          <button type="submit" class="btn-primary btn-sm">Save Changes</button>
+          <button type="button" class="btn-secondary btn-sm" onclick="toggleEditProfile()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.user-profile-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-card); border: 0.5px solid var(--border);
+  border-radius: var(--radius); padding: 12px 16px;
+}
+.user-profile-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--green-400); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; font-weight: 600; flex-shrink: 0;
+}
+.user-profile-name { font-size: 0.925rem; font-weight: 500; color: var(--text); }
+.user-profile-username { font-size: 0.78rem; color: var(--green-400); margin-top: 2px; }
+.user-profile-email { font-size: 0.75rem; color: var(--text-muted); margin-top: 1px; }
+
+/* Profile info cells */
+.profile-info-cell {
+  background: var(--gray-50); border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+.pic-label {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); margin-bottom: 4px;
+}
+.pic-val { font-size: 0.9rem; font-weight: 500; color: var(--text); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleEditProfile() {
+  const display = document.getElementById('profile-display');
+  const edit    = document.getElementById('profile-edit');
+  const btn     = document.getElementById('edit-toggle-btn');
+  const isEditing = edit.style.display !== 'none';
+  display.style.display = isEditing ? '' : 'none';
+  edit.style.display    = isEditing ? 'none' : '';
+  btn.textContent       = isEditing ? 'Edit' : 'Cancel';
+}
+
+// Auto-open edit panel if there were validation errors
+{% if show_edit_form %}
+window.addEventListener('DOMContentLoaded', function() {
+  toggleEditProfile();
+});
+{% endif %}
+</script>
 {% endblock %}

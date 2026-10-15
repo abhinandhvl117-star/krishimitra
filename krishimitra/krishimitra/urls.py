@@ -39,6 +39,7 @@ urlpatterns = [
     path('weather/', views.weather_view, name='weather'),
     path('chatbot/', views.chatbot_view, name='chatbot'),
     path('chatbot/ask/', views.chatbot_ask_view, name='chatbot_ask'),
+    path('edit-profile/', views.edit_profile_view, name='edit_profile'),
     
     # admin
     path('admin-panel/', views.admin_dashboard_view, name='admin_dashboard'),

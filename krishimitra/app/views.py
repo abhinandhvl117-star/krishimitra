@@ -49,8 +49,8 @@ from app.forms import(
 
 logger = logging.getLogger(__name__)
 
-FASTAPI_URL = getattr(settings, 'FASTAPI_URL', 'http://127.0.0.1:8001')
-OWM_API_KEY = getattr(settings, 'OPENWEATHERMAP_API_KEY', "")
+FASTAPI_URL = getattr(settings, 'FASTAPI_URL')
+OWM_API_KEY = getattr(settings, 'OPENWEATHERMAP_API_KEY')
 DEFAULT_CITY = getattr(settings, 'DEFAULT_WEATHER_CITY', '')
 
 
@@ -372,6 +372,40 @@ def dashboard_view(request):
         'health_status': latest_disease.disease_name if latest_disease else None,
         'recent_activity': activity[:5],
     })
+    
+# edit profile
+
+@login_required
+@require_POST
+def edit_profile_view(request):
+    user = request.user
+    first_name = request.POST.get('first_name', '').strip()
+    last_name  = request.POST.get('last_name', '').strip()
+    username   = request.POST.get('username', '').strip()
+    email      = request.POST.get('email', '').strip()
+ 
+    errors = []
+ 
+    if not username:
+        errors.append('Username cannot be empty.')
+    elif username != user.username and User.objects.filter(username=username).exists():
+        errors.append('That username is already taken.')
+ 
+    if email and email != user.email and User.objects.filter(email=email).exists():
+        errors.append('That email is already registered to another account.')
+ 
+    if errors:
+        for e in errors:
+            messages.error(request, e)
+    else:
+        user.first_name = first_name
+        user.last_name  = last_name
+        user.username   = username
+        user.email      = email
+        user.save()
+        messages.success(request, 'Profile updated successfully! ✅')
+ 
+    return redirect('dashboard')
     
 # crop
 @login_required
