@@ -3,6 +3,7 @@ import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Crop from './pages/Crop'
 import Login from './pages/Login'
+import Register from './pages/Register'
 
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path='/' element={ <Home /> }/>
         <Route path='/crop' element={ <Crop /> }/>
         <Route path='/login' element={ <Login/> }/>
+        <Route path='/register' element={ <Register/> }/>
       </Routes>
     </>
   )

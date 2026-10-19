@@ -42,7 +42,7 @@ export default function Login() {
 
                     <div className="form-group">
                         <label htmlFor="id_password" className="form-label">password</label>
-                        <input type="text" className="form-input" id="id_password"
+                        <input type="password" className="form-input" id="id_password"
                         value={password} onChange={(e) => {setPassword(e.target.value)}}
                         autoComplete="current-password" required/>
                     </div>
