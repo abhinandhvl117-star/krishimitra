@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({children}) {
     const [user, setUser] = useState(null)
-    const [loading, setLoading] = useState(null)
+    const [loading, setLoading] = useState(true)
 
     // on page load: if a token exists, ask the backend who we are
     useEffect(() => {

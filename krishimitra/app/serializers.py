@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import UserProfile, CropRecommendation
 from django.contrib.auth import password_validation
 from django.db import transaction
 
@@ -42,3 +42,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
             UserProfile.objects.create(user=user, city=city)
         
         return user
+    
+class CropRecommendationSerializer(serializers.ModelSerializer):
+    nitrogen = serializers.FloatField(min_value=0, max_value=300)
+    phosphorus = serializers.FloatField(min_value=0, max_value=300)
+    potassium = serializers.FloatField(min_value=0, max_value=300)
+    temperature = serializers.FloatField(min_value=0, max_value=60)
+    humidity = serializers.FloatField(min_value=0, max_value=100)
+    ph = serializers.FloatField(min_value=0, max_value=14)
+    rainfall = serializers.FloatField(min_value=0)
+    class Meta:
+        model = CropRecommendation
+        fields = ('nitrogen', 'phosphorus', 'potassium', 'temperature', 'humidity', 'ph', 'rainfall')
