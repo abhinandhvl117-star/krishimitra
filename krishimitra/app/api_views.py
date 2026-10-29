@@ -7,6 +7,7 @@ from .serializers import RegistrationSerializer, CropRecommendationSerializer
 from rest_framework.permissions import AllowAny
 import requests
 from django.conf import settings
+from .models import CropRecommendation
 
 FASTAPI_URL = getattr(settings, 'FASTAPI_URL')
 class LoginSerializer(TokenObtainPairSerializer):
@@ -71,14 +72,26 @@ class CropRecommendationView(APIView):
             "ph": data['ph'],
             "rainfall": data['rainfall']    
         }
-        resp = requests.post(f"{FASTAPI_URL}/crop", json=payload, timeout=15)
-        resp.raise_for_status()
-        api_result = resp.json()
-        print(api_result)
-        # data = serializer.save()
         
+        try:
+            resp = requests.post(f"{FASTAPI_URL}/crop", json=payload, timeout=15)
+            resp.raise_for_status()
+            predicted = resp.json().get("predicted crop", "unknown")
+        except requests.exceptions.Timeout:
+            return Response({"detail": "The AI service took too long. Please try again"},
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
+        except requests.exceptions.ConnectionError:
+            return Response({"detail": "Could not connect to the AI service."},
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except requests.exceptions.RequestException:
+            return Response({"detail": "The AI service returned an error."},
+                            status=status.HTTP_502_BAD_GATEWAY)
         
-        return Response(
-            {'message': 'Successfully received the values'},
-            status=status.HTTP_202_ACCEPTED
-        )
+        CropRecommendation.objects.create(user=request.user, recommended_crop=predicted, **data)
+        
+        return Response({
+            "crop": predicted.title(),
+            "n": data["nitrogen"],
+            "p": data["phosphorus"],
+            "k": data["potassium"]
+        })
