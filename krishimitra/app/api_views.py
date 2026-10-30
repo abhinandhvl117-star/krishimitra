@@ -7,9 +7,28 @@ from .serializers import RegistrationSerializer, CropRecommendationSerializer
 from rest_framework.permissions import AllowAny
 import requests
 from django.conf import settings
-from .models import CropRecommendation
+from .models import CropRecommendation, PricePrediction
+from .forms import STATE_DISTRICTS, COMMODITY_CHOICES
 
 FASTAPI_URL = getattr(settings, 'FASTAPI_URL')
+
+COMMODITIES = [c[0] for c in COMMODITY_CHOICES]
+
+def call_ml(path, **kwargs):
+    try:
+        resp = requests.post(f"{FASTAPI_URL}{path}",timeout=15, **kwargs)
+        resp.raise_for_status()
+        return resp.json(), None
+        
+    except requests.exceptions.Timeout:
+        return None, Response({"detail": "The AI service took too long. Please try again"},
+                        status=status.HTTP_504_GATEWAY_TIMEOUT)
+    except requests.exceptions.ConnectionError:
+        return None, Response({"detail": "Could not connect to the AI service."},
+                        status=status.HTTP_503_SERVICE_UNAVAILABLE)
+    except requests.exceptions.RequestException:
+        return None, Response({"detail": "The AI service returned an error."},
+                        status=status.HTTP_502_BAD_GATEWAY)
 class LoginSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
@@ -57,7 +76,7 @@ class RegisterView(APIView):
         )
         
 class CropRecommendationView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
     def post(self, request):
         serializer = CropRecommendationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -73,20 +92,12 @@ class CropRecommendationView(APIView):
             "rainfall": data['rainfall']    
         }
         
-        try:
-            resp = requests.post(f"{FASTAPI_URL}/crop", json=payload, timeout=15)
-            resp.raise_for_status()
-            predicted = resp.json().get("predicted crop", "unknown")
-        except requests.exceptions.Timeout:
-            return Response({"detail": "The AI service took too long. Please try again"},
-                            status=status.HTTP_504_GATEWAY_TIMEOUT)
-        except requests.exceptions.ConnectionError:
-            return Response({"detail": "Could not connect to the AI service."},
-                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        except requests.exceptions.RequestException:
-            return Response({"detail": "The AI service returned an error."},
-                            status=status.HTTP_502_BAD_GATEWAY)
+        body, error = call_ml("/crop", json=payload)
+        if error:
+            return error
         
+        predicted = body.get("predicted crop", "unknown")
+
         CropRecommendation.objects.create(user=request.user, recommended_crop=predicted, **data)
         
         return Response({
@@ -95,3 +106,51 @@ class CropRecommendationView(APIView):
             "p": data["phosphorus"],
             "k": data["potassium"]
         })
+        
+class PriceOptionView(APIView):
+    # permission_classes = [AllowAny]
+    def get(self, request):
+        return Response({
+            "state": {s: sorted(d) for s, d in sorted(STATE_DISTRICTS.items())},
+            "commodities": COMMODITIES
+        })        
+
+class PricePredictionSerializer(serializers.ModelSerializer):
+    state = serializers.ChoiceField(choices=sorted(STATE_DISTRICTS))
+    district = serializers.CharField(max_length=100)
+    commodity = serializers.ChoiceField(choices=COMMODITIES)
+    
+    class Meta:
+        model = PricePrediction
+        fields = ['state', 'district', 'commodity']
+    
+    def validate(self, attrs):
+        if attrs['district'] not in STATE_DISTRICTS[attrs['state']]:
+            raise serializers.ValidationError(
+                {"district": "This district does not belong in the selected state."}
+            )
+        return attrs 
+    
+class PricePredictionView(APIView):
+    # permission_classes = [AllowAny]
+    def post(self, request):
+        serializer = PricePredictionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        
+        payload = {
+            "State": data["state"],
+            "District": data["district"],
+            "Commodity": data["commodity"]
+        }
+        
+        body, error = call_ml("/mandi", json=payload)
+        if error:
+            return error
+        if "error" in body:
+            return Response({"detail": body["error"]}, status=status.HTTP_400_BAD_REQUEST)
+        
+        price = body.get("predicted_price", 0)
+        PricePrediction.objects.create(user=request.user, predicted_price=price, **data)
+        
+        return Response({"predicted_price": round(price, 2), **data})

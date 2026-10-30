@@ -49,7 +49,7 @@ export default function Crop() {
         setSubmitting(true);
 
         try {
-            const res = await api.post("/auth/crop/", form);
+            const res = await api.post("/crop/", form);
             setResult(res.data);
         } catch (err) {
             setErrors(err.response?.data || { detail: "Could not react the server" });
@@ -66,7 +66,7 @@ export default function Crop() {
     return (
         <div className="feature-page">
             <div className="page-header fade-up">
-                <Link to="/dashboard" className="breadcrumb">Dashboard</Link>
+                <Link to="/dashboard" className="breadcrumb">← Dashboard</Link>
                 <h2>Crop Recommendation</h2>
                 <p>Enter your soil profile and environmental data to get a personalized crop suggestion.</p>
             </div>

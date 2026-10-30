@@ -3,7 +3,6 @@ import { useAuth } from "../context/AuthContext";
 import Spinner from "./Spinner";
 export default function ProtectedRoute({children}) {
     const { user, loading } = useAuth();
-    console.log(user)
 
     if (loading) {
         return (

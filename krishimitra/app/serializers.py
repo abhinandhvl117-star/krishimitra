@@ -54,3 +54,4 @@ class CropRecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CropRecommendation
         fields = ('nitrogen', 'phosphorus', 'potassium', 'temperature', 'humidity', 'ph', 'rainfall')
+        

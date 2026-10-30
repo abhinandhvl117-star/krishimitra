@@ -22,6 +22,7 @@ export default function Navbar(){
                         <>
                             <NavLink to="/" end>Home</NavLink>
                             <NavLink to="/dashboard">Dashboard</NavLink>
+                            <NavLink to="/price">price</NavLink>
                             <NavLink to="/crop">Crop</NavLink>
                             <Link to="/" className="nav-logout" onClick={logout}>Logout</Link>
                         </>

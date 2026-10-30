@@ -5,6 +5,7 @@ import Crop from './pages/Crop'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Price from './pages/Price'
 import ProtectedRoute from './components/ProtectedRoute'
 
 
@@ -19,6 +20,7 @@ function App() {
         <Route path='/register' element={ <Register/> }/>
         <Route path='/dashboard' element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
         <Route path='/crop' element={<ProtectedRoute><Crop /></ProtectedRoute>} />
+        <Route path='/price' element={<ProtectedRoute><Price /></ProtectedRoute>} />
         
       </Routes>
     </>
