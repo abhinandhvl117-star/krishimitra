@@ -7,8 +7,9 @@ from .serializers import RegistrationSerializer, CropRecommendationSerializer
 from rest_framework.permissions import AllowAny
 import requests
 from django.conf import settings
-from .models import CropRecommendation, PricePrediction, DiseaseDetection
+from .models import CropRecommendation, PricePrediction, DiseaseDetection, UserProfile
 from .forms import STATE_DISTRICTS, COMMODITY_CHOICES
+from .weather_service import default_city, get_weather, get_forecast, generate_advisory
 
 FASTAPI_URL = getattr(settings, 'FASTAPI_URL')
 MAX_IMAGE_MB = 10
@@ -218,3 +219,50 @@ class DiseaseDetectionVIew(APIView):
             "cause": cause,
             "cure": cure,
         })
+        
+def get_or_create_profile(user):
+    profile, _ = UserProfile.objects.get_or_create(user=user, defaults={"city": default_city})
+    return profile
+
+def weather_payload(city):
+    weather = get_weather(city)
+    if not weather:
+        return None
+    return {
+        "city": city,
+        "weather": weather,
+        "forecast": get_forecast(city),
+        "advisory": generate_advisory(weather),
+    }
+    
+class CitySerializer(serializers.Serializer):
+    city = serializers.CharField(max_length=100)
+    
+class WeatherView(APIView):
+    def get(self, request):
+        profile = get_or_create_profile(request.user)
+        payload = weather_payload(profile.city)
+        if payload is None:
+            return Response(
+                {"detail": f'Could not load weather for "{profile.city}"'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        return Response(payload)
+
+    def post(self, request):
+        serializer = CitySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_city = serializer.validated_data["city"]
+        
+        payload = weather_payload(new_city)
+        if payload is None:
+            return Response(
+                {"city": [f'Could not find "{new_city}". Please check the city name.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+        profile = get_or_create_profile(request.user)
+        profile.city = new_city
+        profile.save()
+        return Response(payload)
+    

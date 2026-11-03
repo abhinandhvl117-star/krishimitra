@@ -7,6 +7,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Price from './pages/Price'
 import Disease from './pages/Disease'
+import Weather from './pages/Weather'
 import ProtectedRoute from './components/ProtectedRoute'
 
 
@@ -23,6 +24,7 @@ function App() {
         <Route path='/crop' element={<ProtectedRoute><Crop /></ProtectedRoute>} />
         <Route path='/price' element={<ProtectedRoute><Price /></ProtectedRoute>} />
         <Route path='/disease' element={<ProtectedRoute><Disease /></ProtectedRoute>} />
+        <Route path='/weather' element={<ProtectedRoute><Weather /></ProtectedRoute>} />
         
       </Routes>
     </>
