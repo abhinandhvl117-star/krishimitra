@@ -7,16 +7,17 @@ from .serializers import RegistrationSerializer, CropRecommendationSerializer
 from rest_framework.permissions import AllowAny
 import requests
 from django.conf import settings
-from .models import CropRecommendation, PricePrediction
+from .models import CropRecommendation, PricePrediction, DiseaseDetection
 from .forms import STATE_DISTRICTS, COMMODITY_CHOICES
 
 FASTAPI_URL = getattr(settings, 'FASTAPI_URL')
+MAX_IMAGE_MB = 10
 
 COMMODITIES = [c[0] for c in COMMODITY_CHOICES]
 
-def call_ml(path, **kwargs):
+def call_ml(path, timeout=15, **kwargs):
     try:
-        resp = requests.post(f"{FASTAPI_URL}{path}",timeout=15, **kwargs)
+        resp = requests.post(f"{FASTAPI_URL}{path}",timeout=timeout, **kwargs)
         resp.raise_for_status()
         return resp.json(), None
         
@@ -154,3 +155,66 @@ class PricePredictionView(APIView):
         PricePrediction.objects.create(user=request.user, predicted_price=price, **data)
         
         return Response({"predicted_price": round(price, 2), **data})
+    
+class DiseaseSerializer(serializers.Serializer):
+    image = serializers.ImageField()
+    
+    def validate_image(self, image):
+        if image.size > MAX_IMAGE_MB * 1024 * 1024:
+            raise serializers.ValidationError(f"Image must be under {MAX_IMAGE_MB} MB.")
+        return image
+    
+class DiseaseDetectionVIew(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        serializer = DiseaseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        image = serializer.validated_data['image']
+        
+        image.seek(0)
+        body, error = call_ml(
+            "/disease", timeout=30,
+            files = {"file": (image.name, image.read(), image.content_type)},
+        )
+        if error:
+            return error
+        if 'error' in body:
+            return Response({"detail": body['error']}, status=status.HTTP_502_BAD_GATEWAY)
+        
+        prediction = body.get("prediction", "Unknown")
+        cause = body.get("cause", "")
+        cure = body.get("cure", "")
+        
+        if prediction == "Background_with_leaves":
+            return Response(
+                {"detail": "No plant leaf detected. Please upload a clear photo of the leave."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        
+        if "___" in prediction:
+            crop, condition = prediction.split("___", 1)
+        else:
+            crop, condition = "Unknown", prediction
+        
+        crop = crop.replace("_", " ")
+        condition = condition.replace("_", " ").title()
+        disease_name = f"{crop} - {condition}"
+        
+        image.seek(0)
+        record = DiseaseDetection(
+            user=request.user,
+            crop_type=crop,
+            disease_name=disease_name,
+            description=f"Cause: {cause}",
+            treatments=[cure] if cure else [],
+        )
+        record.image.save(image.name, image, save=True)
+        
+        return Response({
+            "disease_name": disease_name,
+            "crop": crop,
+            "condition": condition,
+            "healthy": condition.lower().startswith("healthy"),
+            "cause": cause,
+            "cure": cure,
+        })

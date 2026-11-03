@@ -6,7 +6,8 @@ from .api_views import (
     RegisterView, 
     CropRecommendationView,
     PriceOptionView,
-    PricePredictionView
+    PricePredictionView,
+    DiseaseDetectionVIew
 )
 
 urlpatterns = [
@@ -17,4 +18,5 @@ urlpatterns = [
     path("crop/", CropRecommendationView.as_view()),
     path("price/options/", PriceOptionView.as_view()),
     path("price/", PricePredictionView.as_view()),
+    path("disease", DiseaseDetectionVIew.as_view())
 ]
