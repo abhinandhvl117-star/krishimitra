@@ -10,11 +10,16 @@ from django.conf import settings
 from .models import CropRecommendation, PricePrediction, DiseaseDetection, UserProfile
 from .forms import STATE_DISTRICTS, COMMODITY_CHOICES
 from .weather_service import default_city, get_weather, get_forecast, generate_advisory
+import logging
+from .chatbot_service import get_groq_reply
+from .models import ChatMessage
 
 FASTAPI_URL = getattr(settings, 'FASTAPI_URL')
 MAX_IMAGE_MB = 10
 
 COMMODITIES = [c[0] for c in COMMODITY_CHOICES]
+
+logger = logging.getLogger(__name__)
 
 def call_ml(path, timeout=15, **kwargs):
     try:
@@ -265,4 +270,40 @@ class WeatherView(APIView):
         profile.city = new_city
         profile.save()
         return Response(payload)
+    
+class ChatSerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=1000)
+    
+def recent_messages(user, limit=20):
+    qs = ChatMessage.objects.filter(user=user).order_by("-created_at")[:limit]
+    return list(qs)[::-1]
+
+class ChatView(APIView):
+    def get(self, request):
+        return Response([
+            {"id": m.id, "role": m.role, "content": m.content}
+            for m in recent_messages(request.user)
+        ])
+    
+    def post(self, request):
+        serializer = ChatSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        text = serializer.validated_data["message"]
+        
+        history = recent_messages(request.user)
+        city = get_or_create_profile(request.user).city
+        
+        try:
+            reply = get_groq_reply(user_message=text, history=history, location=city)
+        except (ValueError, ImportError):
+            logger.exception("Chat service is not configured")
+            return Response({"detail": "The chat service isn't configured yet"},
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception:
+            logger.exception("Groq API call failed")
+            return Response({"detail": "Sorry, I'm having trouble responding right now. Please try again."},
+                            status=status.HTTP_502_BAD_GATEWAY)
+            
+        ChatMessage.objects.create(user=request.user, role="user", content=text)
+        ChatMessage.objects.create(user=request.user, role="bot", content=reply)
     

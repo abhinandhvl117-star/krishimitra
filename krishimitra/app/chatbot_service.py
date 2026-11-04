@@ -37,7 +37,7 @@ def get_groq_reply(user_message: str, history: list, location: str = "India") ->
     history: list of ChatMessage objects (role, content)
     Returns reply string, or raises an exception.
     """
-    api_key = getattr(settings, 'GROQ_API_KEY')
+    api_key = getattr(settings, 'GROQ_API_KEY', '')
     if not api_key:
         raise ValueError("GROQ_API_KEY is not set in settings.py")
 
