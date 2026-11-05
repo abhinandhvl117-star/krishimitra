@@ -13,6 +13,7 @@ from .weather_service import default_city, get_weather, get_forecast, generate_a
 import logging
 from .chatbot_service import get_groq_reply
 from .models import ChatMessage
+from django.contrib.auth.models import User
 
 FASTAPI_URL = getattr(settings, 'FASTAPI_URL')
 MAX_IMAGE_MB = 10
@@ -57,17 +58,6 @@ class LoginSerializer(TokenObtainPairSerializer):
 class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer
     
-class MeView(APIView):
-    def get(self, request):
-        user = request.user
-        return Response({
-            'id': user.id,
-            'username': user.username,
-            'first_name': user.first_name,
-            'email': user.email,
-            'place': user.profile.city if hasattr(user, 'profile') else None,
-            'is_staff': user.is_staff
-        })
         
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -306,4 +296,80 @@ class ChatView(APIView):
             
         ChatMessage.objects.create(user=request.user, role="user", content=text)
         ChatMessage.objects.create(user=request.user, role="bot", content=reply)
+        return Response({"reply": reply})
     
+
+def user_payload(user):
+    profile = getattr(user, 'profile', None)
+    return {
+        "id": user.id,
+        "username": user.username,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "email": user.email,
+        "city": profile.city if profile else "",
+        "is_staff": user.is_staff,
+    }
+    
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "username", "email"]
+        extra_kwargs = {"email": {"required": True, "allow_blank": False}}
+        
+    def validate_email(self, value):
+        taken = User.objects.filter(email__iexact=value).exclude(pk=self.instance.pk)
+        if taken.exists():
+            raise serializers.ValidationError("That email is already registered to another account.")
+        return value
+    
+class MeView(APIView):
+    def get(self, request):
+        return Response(user_payload(request.user))
+    
+    def patch(self, request):
+        serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(user_payload(request.user))
+    
+class DashboardView(APIView):
+    def get(self, request):
+        user = request.user
+        city = get_or_create_profile(user).city
+        
+        crops = CropRecommendation.objects.filter(user=user)
+        prices = PricePrediction.objects.filter(user=user)
+        diseases = DiseaseDetection.objects.filter(user=user)
+        
+        latest_crop = crops.first()
+        latest_price = prices.first()
+        latest_disease = diseases.first()
+        
+        activity = []
+        for c in crops[:2]:
+            activity.append({"type": "crop", "title": "Crop recommendation generated",
+                            "detail": f"{c.recommended_crop.title()} recommended",
+                            "created_at": c.created_at})
+        for d in diseases[:2]:
+            activity.append({"type": "disease", "title": "Disease scan completed",
+                             "detail": d.disease_name or "Analysis complete",
+                             "created_at": d.created_at})   
+        for p in prices[:1]:
+            activity.append({"type": "price", "title": "Price prediction run",
+                             "detail": f"{p.commodity} - ₹{round(p.predicted_price or 0)}/quintal",
+                             "created_at": p.created_at})
+        
+        activity.sort(key=lambda a: a["created_at"], reverse=True)
+        
+        return Response({
+            "weather": get_weather(city),
+            "latest_crop": {"name": latest_crop.recommended_crop.title(),
+                            "data": latest_crop.created_at} if latest_crop else None,
+            "latest_price": {"commodity": latest_price.commodity, "price": latest_price.predicted_price,
+                             "district": latest_price.district,
+                             "date": latest_price.created_at} if latest_price else None,
+            "lates_disease": {"name": latest_disease.disease_name,
+                              "date": latest_disease.created_at} if latest_disease else None,
+            "activity": activity[:5],
+        })

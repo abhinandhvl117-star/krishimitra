@@ -9,7 +9,8 @@ from .api_views import (
     PricePredictionView,
     DiseaseDetectionVIew,
     WeatherView,
-    ChatView
+    ChatView,
+    DashboardView
 )
 
 urlpatterns = [
@@ -22,5 +23,6 @@ urlpatterns = [
     path("price/", PricePredictionView.as_view()),
     path("disease/", DiseaseDetectionVIew.as_view()),
     path("weather/", WeatherView.as_view()),
-    path("chat/", ChatView.as_view())
+    path("chat/", ChatView.as_view()),
+    path("dashboard/", DashboardView.as_view()),
 ]
