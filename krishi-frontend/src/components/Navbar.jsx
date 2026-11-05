@@ -26,6 +26,7 @@ export default function Navbar(){
                             <NavLink to="/price">price</NavLink>
                             <NavLink to="/crop">Crop</NavLink>
                             <NavLink to="/disease">Disease</NavLink>
+                            <NavLink to="/chatbot">ChatBot</NavLink>
                             <Link to="/" className="nav-logout" onClick={logout}>Logout</Link>
                         </>
                     )
