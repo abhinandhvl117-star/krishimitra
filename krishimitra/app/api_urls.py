@@ -13,6 +13,16 @@ from .api_views import (
     DashboardView
 )
 
+from .admin_api import (
+    AdminOverviewView,
+    AdminUserListView,
+    AdminUserDetailView,
+    AdminUserToggleView,
+    AdminCropListView,
+    AdminDiseaseListView,
+    AdminPriceListView
+)
+
 urlpatterns = [
     path("auth/login/", LoginView.as_view()),
     path("auth/refreash/", TokenRefreshView.as_view()),
@@ -25,4 +35,13 @@ urlpatterns = [
     path("weather/", WeatherView.as_view()),
     path("chat/", ChatView.as_view()),
     path("dashboard/", DashboardView.as_view()),
+    
+    # Admin
+    path("admin/overview/", AdminOverviewView.as_view()),
+    path("admin/users/", AdminUserListView.as_view()),
+    path("admin/users/<int:user_id>/", AdminUserDetailView.as_view()),
+    path("admin/users/<int:user_id>/toggle/", AdminUserToggleView.as_view()),
+    path("admin/crops/", AdminCropListView.as_view()),
+    path("admin/diseases/", AdminDiseaseListView.as_view()),
+    path("admin/prices/", AdminPriceListView.as_view()),
 ]
