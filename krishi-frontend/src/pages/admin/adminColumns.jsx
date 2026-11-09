@@ -1,4 +1,4 @@
-import { statusBadge, viewLink } from "./AdminUi";
+import { StatusBadge } from "./AdminUi";
 
 export const dt = (iso) => 
     new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
