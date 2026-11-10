@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
     const { login } = useAuth();
@@ -9,6 +9,7 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const location = useLocation();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -48,7 +49,7 @@ export default function Login() {
                     </div>
 
                     {error && <div className="alert alert-error" style={{ marginBottom: "1rem" }}>{error}</div>}
-
+                    {location.state?.message && <div className="alert alert-success">{location.state.message}</div>}
                     <div style={{ textAlign: "right", marginBottom: "1rem" }}>
                         <Link to="/forgot-password"
                         style={{ fontSize: "0.8rem", color: "var(--green-400)", textDecoration: "none" }}>

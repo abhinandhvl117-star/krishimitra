@@ -745,3 +745,44 @@ nav:hover { box-shadow: var(--shadow-xs); }
 .profile-info-cell { background: var(--gray-50); border-radius: var(--radius-sm); padding: 12px 14px; }
 .pic-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 4px; }
 .pic-val { font-size: 0.9rem; font-weight: 500; color: var(--text); }
+
+.auth-card {
+  max-width: 420px;
+  margin: 4rem auto;     
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+}
+.auth-card input { width: 100%; box-sizing: border-box; }
+.auth-footer { text-align: center; margin-top: 1rem; font-size: .875rem; }
+
+.site-footer { background: var(--gray-900); margin-top: 5rem; }
+.footer-inner {
+  max-width: 960px; margin: 0 auto;
+  padding: 3rem 2rem 2rem;
+  display: flex; gap: 3rem; flex-wrap: wrap;
+}
+.footer-brand { flex: 1; min-width: 220px; }
+.footer-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
+.footer-logo .logo-icon { background: var(--green-400); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.footer-logo .logo-text { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: white; }
+.footer-logo .logo-text span { color: var(--green-400); }
+.footer-tagline { font-size: 0.825rem; color: var(--gray-400); line-height: 1.65; margin-bottom: 1rem; max-width: 260px; }
+.footer-contact { font-size: 0.78rem; color: var(--gray-400); }
+.footer-links-group { display: flex; gap: 3rem; flex-wrap: wrap; }
+.footer-col { display: flex; flex-direction: column; gap: 8px; min-width: 120px; }
+.footer-col-title { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-200); margin-bottom: 4px; }
+.footer-col a, .footer-col span { font-size: 0.825rem; color: var(--gray-400); text-decoration: none; transition: color 0.15s; }
+.footer-col a:hover { color: var(--green-400); }
+.footer-bottom {
+  max-width: 960px; margin: 0 auto; padding: 1.25rem 2rem;
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  font-size: 0.78rem; color: var(--gray-600);
+}
+@media (max-width: 640px) {
+  .footer-inner { flex-direction: column; gap: 2rem; }
+  .footer-links-group { gap: 1.5rem; }
+  .footer-bottom { flex-direction: column; align-items: center; text-align: center; }
+}

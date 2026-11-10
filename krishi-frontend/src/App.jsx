@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "./components/MainLayout";
 import AdminLayout from "./pages/admin/AdminLayout";
-import Home from './pages/Home'
+import Home from "./pages/Home";
 import Crop from './pages/Crop'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -15,7 +15,9 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminUserDetail from "./pages/admin/AdminUserDetail";
 import { AdminCrops, AdminDiseases, AdminPrices } from "./pages/admin/AdminList";
-
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyOtp from "./pages/VerifyOtp";
 
 function App() {
   return (
@@ -32,6 +34,9 @@ function App() {
             <Route path="/disease" element={<ProtectedRoute><Disease /></ProtectedRoute>} />
             <Route path="/weather" element={<ProtectedRoute><Weather /></ProtectedRoute>} />
             <Route path="/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
 
           {/* admin site: uses its own dark navbar (inside AdminLayout) */}

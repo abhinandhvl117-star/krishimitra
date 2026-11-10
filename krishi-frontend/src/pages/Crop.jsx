@@ -92,7 +92,11 @@ export default function Crop() {
             {result && (
                 <div className="result-card fade-up">
                     <div className="result-label">Recommended Crop</div>
-                    <div className="result-value">{result.crop}</div>
+                    <div className="result-value">{result.crop}
+                    {result.confidence != null && (
+                        <p>Confidence: {result.confidence}%</p>
+                    )}
+                    </div>
                     <div className="result-grid" style={{ marginTop: "1rem" }}>
                         <div className="result-mini">
                             <div className="rm-label">Nitrogen (N)</div>

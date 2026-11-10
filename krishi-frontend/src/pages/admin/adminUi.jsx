@@ -25,7 +25,6 @@ export function ScrollCard({ title, count, link, maxHeight, style, children }) {
   );
 }
 
-// columns = [{ header, render: (row) => JSX }]  — one table for every page
 export function Table({ columns, rows, empty, rowClass }) {
   return (
     <table className="admin-table">

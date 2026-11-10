@@ -6,12 +6,12 @@ export default function AdminDashboard() {
     const { data, error } = useFetch("/admin/overview/");
     if (!data) return <Loading error={error}/>;
 
-    const { totals } = data;
+    const { total } = data;
     const cards = [
-        { label: "Total Users", value: totals.users, sub: "Registered farmers", badge: "green", tag: "Active platform" },
-        { label: "Crop Predictions", value: totals.crops, sub: "All time", badge: "green", tag: "Crop" },
-        { label: "Disease Scans", value: totals.diseases, sub: "All time", badge: "coral", tags: "Disease" },
-        { label: "Price Predictions", value: "totals.prices", sub: "All time", badge: "ambar", tag: "Price" }
+        { label: "Total Users", value: total.users, sub: "Registered farmers", badge: "green", tag: "Active platform" },
+        { label: "Crop Predictions", value: total.crops, sub: "All time", badge: "green", tag: "Crop" },
+        { label: "Disease Scans", value: total.diseases, sub: "All time", badge: "coral", tags: "Disease" },
+        { label: "Price Predictions", value: "total.prices", sub: "All time", badge: "ambar", tag: "Price" }
     ];
 
     return (
@@ -28,7 +28,7 @@ export default function AdminDashboard() {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <ScrollCard title="👥 Recent Users" count={`${totals.users} total`} link="/admin-panel/users">
+            <ScrollCard title="👥 Recent Users" count={`${total.users} total`} link="/admin-panel/users">
             <Table rows={data.recent_users} empty="No users yet"
                     columns={[userCols.person, userCols.city, userCols.joined, userCols.status, userCols.view]}
                     rowClass={(u) => (u.active ? "" : "row-disabled")} />

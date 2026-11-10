@@ -73,7 +73,7 @@ class RegisterView(APIView):
         )
         
 class CropRecommendationView(APIView):
-    # permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = CropRecommendationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -92,20 +92,26 @@ class CropRecommendationView(APIView):
         body, error = call_ml("/crop", json=payload)
         if error:
             return error
-        
-        predicted = body.get("predicted crop", "unknown")
+
+        # FastAPI returns {"error": ...} with status 200 when something fails
+        if "error" in body or "predicted crop" not in body:
+            return Response({"detail": "Prediction failed. Please try again."}, status=502)
+
+        predicted = body["predicted crop"]
+        confidence = body.get("confidence")   # None if FastAPI didn't send it
 
         CropRecommendation.objects.create(user=request.user, recommended_crop=predicted, **data)
-        
+
         return Response({
             "crop": predicted.title(),
+            "confidence": confidence,
             "n": data["nitrogen"],
             "p": data["phosphorus"],
-            "k": data["potassium"]
+            "k": data["potassium"],
         })
         
 class PriceOptionView(APIView):
-    # permission_classes = [AllowAny]
+
     def get(self, request):
         return Response({
             "state": {s: sorted(d) for s, d in sorted(STATE_DISTRICTS.items())},
@@ -129,7 +135,7 @@ class PricePredictionSerializer(serializers.ModelSerializer):
         return attrs 
     
 class PricePredictionView(APIView):
-    # permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = PricePredictionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
