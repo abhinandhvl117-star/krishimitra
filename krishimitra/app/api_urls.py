@@ -23,6 +23,12 @@ from .admin_api import (
     AdminPriceListView
 )
 
+from .password_reset_api import (
+    ForgotPasswordView,
+    VerifyOTPView,
+    ResetPasswordView
+)
+
 urlpatterns = [
     path("auth/login/", LoginView.as_view()),
     path("auth/refreash/", TokenRefreshView.as_view()),
@@ -44,4 +50,9 @@ urlpatterns = [
     path("admin/crops/", AdminCropListView.as_view()),
     path("admin/diseases/", AdminDiseaseListView.as_view()),
     path("admin/prices/", AdminPriceListView.as_view()),
+    
+    # reset password
+    path("auth/forgot-password/", ForgotPasswordView.as_view()),
+    path("auth/verify-otp/", VerifyOTPView.as_view()),
+    path("auth/reset-password/", ResetPasswordView.as_view()),
 ]

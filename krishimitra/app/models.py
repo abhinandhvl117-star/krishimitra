@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
-# Create your models here.
 class CropRecommendation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='crop_recommendation')
     
@@ -94,3 +94,9 @@ class UserProfile(models.Model):
  
     def __str__(self):
         return f"{self.user.username} — {self.city}"
+    
+class PasswordResetOTP(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='reset_otp')
+    code_hash = models.CharField(max_length=128)
+    issued_at = models.DateTimeField(default=timezone.now)
+    attempts = models.PositiveSmallIntegerField(default=0)

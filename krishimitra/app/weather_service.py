@@ -34,10 +34,10 @@ def get_weather(city=None):
                             params={"q": city, "appid": api_key, "units":"metric"})
         resp.raise_for_status()
         raw = resp.json()
-    except requests.RequestException:
-        logger.exception("Weather fetch failed for %s", city)
+    except requests.RequestException as exc:
+        logger.warning("Weather fetch failed for %s (%s)", city, type(exc).__name__)
         return None
-    
+        
     sunrise = datetime.fromtimestamp(raw["sys"]["sunrise"] + raw.get("timezone", 0), tz=dt_tz.utc)
     
     data = {
@@ -73,9 +73,9 @@ def get_forecast(city=None):
                             params={"q": city, "appid": api_key, "units": "metric", "cnt": 40})
         resp.raise_for_status()
         raw = resp.json()
-    except requests.RequestException:
-        logger.exception("Forecast fetch failed for %s", city)
-        return []
+    except requests.RequestException as exc:
+        logger.warning("Weather fetch failed for %s (%s)", city, type(exc).__name__)
+        return None
     
     days = {}
     for item in raw["list"]:

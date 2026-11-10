@@ -39,19 +39,19 @@ class CropRowSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CropRecommendation
-        fields = ["id", "username", "crop", "nitrogen", "phosphorous", "potassium",
-                  "temperature", "humidity", "ph", "rainfall", "created_at"]
+        fields = ["id", "username", "crop", "nitrogen", "phosphorus", "potassium",
+          "temperature", "humidity", "ph", "rainfall", "created_at"]
         
 class DiseaseRowSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
     
-    class meta:
+    class Meta:
         model = DiseaseDetection
         fields = ["id", "username", "disease_name", "crop_type", "affected_part", "created_at"]
         
 class PriceRowSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
-    price = serializers.FloatField(source="user.username", read_only=True)
+    price = serializers.FloatField(source="predicted_price", read_only=True)
     
     class Meta:
         model = PricePrediction
@@ -86,7 +86,7 @@ class AdminOverviewView(APIView):
             "recent_users": AdminUserRowSerializer(recent_users, many=True).data,
             "recent_crops": CropRowSerializer(latest(CropRecommendation, 10), many=True).data,
             "recent_diseases": DiseaseRowSerializer(latest(DiseaseDetection, 10), many=True).data,
-            "recent_prices": PricePrediction(latest(PricePrediction, 10), many=True).data,
+            "recent_prices": PriceRowSerializer(latest(PricePrediction, 10), many=True).data,
         })
         
 class AdminUserListView(APIView):
@@ -109,7 +109,7 @@ class AdminUserListView(APIView):
         qs = qs.order_by(self.SORTS.get(request.query_params.get("sort"), "-date_joined"))
         return Response({
             "total": User.objects.filter(is_staff=False).count(),
-            "result": AdminUserRowSerializer(qs, many=True).data,
+            "results": AdminUserRowSerializer(qs, many=True).data,
         })
         
 class AdminUserDetailView(APIView):

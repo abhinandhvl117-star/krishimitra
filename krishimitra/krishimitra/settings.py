@@ -121,12 +121,15 @@ USE_TZ = True
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ['EMAIL_HOST']
 EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWORD']
+DEFAULT_FROM_EMAIL = f"KrishiMitra <{EMAIL_HOST_USER}>"
+
+PASSWORD_RESET_TIMEOUT = 600
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Auth
 LOGIN_URL = '/login/'
@@ -153,6 +156,7 @@ CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("app.authentication.ActiveAccountJWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_THROTTLE_RATES": {"password_reset": "20/hour"},
 }
 
 SIMPLE_JWT = {
